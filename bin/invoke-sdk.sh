@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-/bin/false
 # ensure sdk is installed
 bin/install-plugin-sdk-linux.sh
 
