@@ -77,6 +77,11 @@ public class StashbotUrlBuilder {
                 "://" + mask(jsc.getStashUsername()) + ":" + mask(jsc.getStashPassword())
                     + "@");
             break;
+        case CREDENTIAL_MANUAL_SSH_KEY:
+            RepositoryCloneLinksRequest rclrssh =
+                new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").user(null).build();
+            url = rs.getCloneLinks(rclrssh).iterator().next().getHref();
+            break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
             // do nothing
             // XXX: do we need to get the git/ssh link instead of the http link here?  maybe that's a new mode?

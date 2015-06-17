@@ -34,11 +34,9 @@ public interface JenkinsServerConfiguration extends Entity {
     static public enum AuthenticationMode {
         // NOTE: when you add stuff here, edit StashbotUrlBuilder as well.
         USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"),
-        CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID");
+        CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID"),
+        CREDENTIAL_MANUAL_SSH_KEY(Constants.CMSK_VALUE, "Manually Configured SSH Key Credential UUID");
 
-        // TODO?
-        //CREDENTIAL_USERNAME_AND_PASSWORD(Constants.CUAP_VALUE),
-        //CREDENTIAL_SSH_KEY(Constants.CSSH_VALUE);
         private final String description;
         private final String mode;
 
@@ -47,8 +45,7 @@ public interface JenkinsServerConfiguration extends Entity {
 
             public static final String UAP_VALUE = "USERNAME_AND_PASSWORD";
             public static final String CMC_VALUE = "CREDENTIAL_MANUALLY_CONFIGURED";
-            //public static final String CUAP_VALUE = "CUAP";
-            //public static final String CSSH_VALUE = "CSSH";
+            public static final String CMSK_VALUE = "CREDENTIAL_MANUAL_SSH_KEY";
         }
 
         AuthenticationMode(String mode, String description) {
@@ -70,6 +67,9 @@ public interface JenkinsServerConfiguration extends Entity {
             }
             if (mode.equals(Constants.CMC_VALUE)) {
                 return CREDENTIAL_MANUALLY_CONFIGURED;
+            }
+            if (mode.equals(Constants.CMSK_VALUE)) {
+                return CREDENTIAL_MANUAL_SSH_KEY;
             }
             throw new IllegalArgumentException("invalid value for enum: " + mode);
         }
