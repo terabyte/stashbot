@@ -17,6 +17,7 @@
   artifactsEnabled
   artifactsPath
   authVersion
+  privKey
 
   esc - escape tool - required
   @author cmyers

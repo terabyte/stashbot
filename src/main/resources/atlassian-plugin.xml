@@ -24,6 +24,7 @@
     <!-- AO resources to persiste configuration data -->
     <ao key="ao-module">
         <description>The AO module for this plugin.</description>
+        <entity>com.palantir.stash.stashbot.persistence.AuthenticationCredential</entity>
         <entity>com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration</entity>
         <entity>com.palantir.stash.stashbot.persistence.PullRequestMetadata</entity>
         <entity>com.palantir.stash.stashbot.persistence.RepositoryConfiguration</entity>

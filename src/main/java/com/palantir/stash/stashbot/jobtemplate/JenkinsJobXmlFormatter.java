@@ -107,6 +107,7 @@ public class JenkinsJobXmlFormatter {
             repositoryUrl = rs.getCloneLinks(sshrclr).iterator().next().getHref();
             vc.put("authVersion", 2);
             vc.put("credentialUUID", jsc.getStashPassword());
+            vc.put("privKey", cpm.getDefaultPrivateSshKey());
             break;
         }
         vc.put("repositoryUrl", repositoryUrl);

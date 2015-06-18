@@ -28,6 +28,7 @@ import com.atlassian.stash.user.PermissionAdminService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserAdminService;
 import com.atlassian.stash.user.UserService;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 
 public class PluginUserManagerTest {
@@ -48,6 +49,8 @@ public class PluginUserManagerTest {
     @Mock
     private JenkinsServerConfiguration jsc;
 
+    private PluginLoggerFactory plf = new PluginLoggerFactory();
+
     private final String USER = "someUser";
     private final String PW = "somePassword";
 
@@ -59,7 +62,7 @@ public class PluginUserManagerTest {
         Mockito.when(jsc.getStashUsername()).thenReturn(USER);
         Mockito.when(jsc.getStashPassword()).thenReturn(PW);
 
-        pum = new PluginUserManager(uas, pas, us);
+        pum = new PluginUserManager(uas, pas, us, plf);
     }
 
     private class GetUserByName implements Answer<StashUser> {
