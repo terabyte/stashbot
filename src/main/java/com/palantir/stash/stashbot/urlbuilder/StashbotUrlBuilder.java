@@ -96,10 +96,10 @@ public class StashbotUrlBuilder {
         return nb.repo(repo).changeset(changeset).buildAbsolute();
     }
 
-    private String mask( String str ) {
+    private String mask(String str) {
         try {
-            return URLEncoder.encode( str, "UTF-8" );
-        } catch( UnsupportedEncodingException e ) {
+            return URLEncoder.encode(str, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
             return str;
         }
     }
