@@ -15,6 +15,8 @@ package com.palantir.stash.stashbot.managers;
 
 import org.slf4j.Logger;
 
+import com.atlassian.stash.internal.key.ssh.SetAccessRequest;
+import com.atlassian.stash.internal.key.ssh.SshKeyAccessService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionAdminService;
@@ -32,12 +34,15 @@ public class PluginUserManager {
     private final UserAdminService uas;
     private final UserService us;
     private final PermissionAdminService pas;
+    private final SshKeyAccessService skas;
     private final Logger log;
 
-    public PluginUserManager(UserAdminService uas, PermissionAdminService pas, UserService us, PluginLoggerFactory plf) {
+    public PluginUserManager(UserAdminService uas, PermissionAdminService pas, UserService us,
+        SshKeyAccessService skas, PluginLoggerFactory plf) {
         this.uas = uas;
         this.pas = pas;
         this.us = us;
+        this.skas = skas;
         this.log = plf.getLoggerForThis(this);
     }
 
@@ -55,11 +60,17 @@ public class PluginUserManager {
         }
     }
 
-    // TODO: Need to figure this out
     public void addKeyToRepoForReading(String pubKey, Repository repo) {
+        SetAccessRequest.Builder sarb = new SetAccessRequest.Builder();
+        sarb.repositoryAccess(repo, Permission.REPO_READ);
+        sarb.key(pubKey, "Stashbot Default Key");
+        skas.setAccess(sarb.build());
+
+        /*
         log.error("TODO: SSH Deploy Keys have not yet been implemented");
         log.error("Please manually add this key to the repo " + repo.getSlug());
         log.error("\n" + pubKey);
+        */
     }
 
     public void addUserToRepoForReading(String username, Repository repo) {

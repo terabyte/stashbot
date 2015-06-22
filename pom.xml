@@ -185,6 +185,14 @@
             <artifactId>gson</artifactId>
             <version>2.2.2-atlassian-1</version>
         </dependency>
+        <!-- this is me depending upon an internal API.  What could possibly go
+             wrong? -->
+        <dependency>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-ssh</artifactId>
+            <version>${stash.version}</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>

@@ -125,6 +125,10 @@
     <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager"/>
     <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
 
+
+    <!-- XXX THIS IS AN INTERNAL API - WHOOPS! -->
+    <component-import key="sshKeyAccessService" interface="com.atlassian.stash.internal.key.ssh.SshKeyAccessService"/>
+
     <!--
     com.atlassian.stash.web.conditions.HasGlobalPermissionCondition
     com.atlassian.stash.web.conditions.HasRepositoryPermissionCondition

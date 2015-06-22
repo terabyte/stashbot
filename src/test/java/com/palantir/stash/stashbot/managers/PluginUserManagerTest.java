@@ -15,15 +15,21 @@ package com.palantir.stash.stashbot.managers;
 
 import java.net.URISyntaxException;
 
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.atlassian.stash.internal.key.ssh.SetAccessRequest;
+import com.atlassian.stash.internal.key.ssh.SshKeyAccessService;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionAdminService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserAdminService;
@@ -39,6 +45,8 @@ public class PluginUserManagerTest {
     private PermissionAdminService pas;
     @Mock
     private UserService us;
+    @Mock
+    private SshKeyAccessService skas;
 
     private PluginUserManager pum;
 
@@ -62,7 +70,7 @@ public class PluginUserManagerTest {
         Mockito.when(jsc.getStashUsername()).thenReturn(USER);
         Mockito.when(jsc.getStashPassword()).thenReturn(PW);
 
-        pum = new PluginUserManager(uas, pas, us, plf);
+        pum = new PluginUserManager(uas, pas, us, skas, plf);
     }
 
     private class GetUserByName implements Answer<StashUser> {
@@ -105,6 +113,20 @@ public class PluginUserManagerTest {
     }
 
     @Test
+    public void testAddKeyToRepo() {
+        String pubKey = "public key";
+
+        pum.addKeyToRepoForReading(pubKey, repo);
+
+        ArgumentCaptor<SetAccessRequest> sar = ArgumentCaptor.forClass(SetAccessRequest.class);
+        Mockito.verify(skas).setAccess(sar.capture());
+        SetAccessRequest sarValue = sar.getValue();
+        Assert.assertEquals(pubKey, sarValue.getKeyText());
+        Assert.assertEquals(Permission.REPO_READ, sarValue.getPermission());
+    }
+
+    @Test
+    @Ignore
     public void testAddUserToRepo() throws URISyntaxException {
     }
 }
