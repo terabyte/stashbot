@@ -186,9 +186,12 @@ authentication mode that will generate SSH keys, add them as deployment keys to
 the stash repos, and connect to jenkins and configure jobs to use the newly
 created credentials.
 
+Jenkins Bug: https://issues.jenkins-ci.org/browse/JENKINS-26537
+
 Resources:
 * Create credentials in jenkins programmatically: https://github.com/opscode-cookbooks/jenkins/blob/master/libraries/credentials.rb
 * Ask jenkins-client to add an API for that: https://github.com/RisingOak/jenkins-client/issues/72
+* calling API with curl looks like this:  curl -X POST -d 'script=System.out.println("fooz")' http://localhost:8080/scriptText (https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Script+Console)
 * Ask atlassian how to programmatically add deploy keys: https://answers.atlassian.com/questions/307633/how-do-you-access-service-like-defaultsshkeyservice-from-stash-plugin
 * Details about making the actual rest call to jenkins: https://groups.google.com/forum/#!topic/jenkinsci-users/sdmsiVwqvyg
 * How to generate SSH keys using JSch: http://www.jcraft.com/jsch/examples/KeyGen.java.html

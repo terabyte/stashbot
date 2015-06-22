@@ -14,10 +14,15 @@
 package com.palantir.stash.stashbot.managers;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +30,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.sal.api.user.UserProfile;
@@ -52,6 +59,9 @@ import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 public class JenkinsManagerTest {
 
     private static final String XML_STRING = "<some xml here/>";
+    private static final String GET_GROOVY_SCRIPT = "get script";
+    private static final String CREATE_GROOVY_SCRIPT = "create script";
+    private static final String ID = UUID.randomUUID().toString();
 
     @Mock
     private RepositoryService repositoryService;
@@ -69,6 +79,16 @@ public class JenkinsManagerTest {
     private UserService us;
     @Mock
     private UserManager um;
+    @Mock
+    private VelocityManager velocityManager;
+    @Mock
+    private VelocityEngine velocityEngine;
+    @Mock
+    private VelocityContext velocityContext;
+    @Mock
+    private Template getTemplate;
+    @Mock
+    private Template createTemplate;
 
     private JenkinsManager jenkinsManager;
 
@@ -95,10 +115,41 @@ public class JenkinsManagerTest {
     private MockJobTemplateFactory jtf;
     private MockSecurityServiceBuilder mssb;
 
+    final private ArgumentCaptor<StringWriter> createCaptor = ArgumentCaptor.forClass(StringWriter.class);
+    final private ArgumentCaptor<StringWriter> getCaptor = ArgumentCaptor.forClass(StringWriter.class);
+
     @Before
     public void setUp() throws Throwable {
 
         MockitoAnnotations.initMocks(this);
+
+        Mockito.when(velocityManager.getVelocityEngine()).thenReturn(velocityEngine);
+        Mockito.when(velocityManager.getVelocityContext()).thenReturn(velocityContext);
+        Mockito.when(velocityEngine.getTemplate(JenkinsManager.GROOVY_CREATE_CREDENTIALS_TEMPLATE_FILE)).thenReturn(
+            createTemplate);
+        Mockito.when(velocityEngine.getTemplate(JenkinsManager.GROOVY_GET_CREDENTIALS_TEMPLATE_FILE)).thenReturn(
+            getTemplate);
+
+        Mockito.doAnswer(new Answer<Void>() {
+
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                StringWriter writer = invocation.getArgumentAt(1, StringWriter.class);
+                writer.write(CREATE_GROOVY_SCRIPT);
+                return null;
+            }
+
+        }).when(createTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
+
+        Mockito.doAnswer(new Answer<Void>() {
+
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                StringWriter writer = invocation.getArgumentAt(1, StringWriter.class);
+                writer.write(GET_GROOVY_SCRIPT);
+                return null;
+            }
+        }).when(getTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
 
         Mockito.when(
             jenkinsClientManager.getJenkinsServer(
@@ -135,7 +186,7 @@ public class JenkinsManagerTest {
         ss = mssb.getSecurityService();
 
         jenkinsManager = new JenkinsManager(repositoryService, cpm, jtm,
-            xmlFormatter, jenkinsClientManager, sub, lf, ss, us, um);
+            xmlFormatter, jenkinsClientManager, sub, lf, ss, us, um, velocityManager);
     }
 
     @Test
@@ -270,5 +321,40 @@ public class JenkinsManagerTest {
         jenkinsManager.updateJob(repo, jt);
 
         Mockito.verify(jenkinsServer, Mockito.never()).updateJob(Mockito.anyString(), Mockito.anyString());
+    }
+
+    @Test
+    public void testCreateSshCredentials() throws IOException {
+
+        Mockito.when(jenkinsServer.runScript(GET_GROOVY_SCRIPT)).thenReturn("Result: not found");
+        Mockito.when(jenkinsServer.runScript(CREATE_GROOVY_SCRIPT)).thenReturn("Result: " + ID);
+
+        jenkinsManager.createOrUpdateCredentialForUser(jsc, rc);
+
+        // capture the uuid when it is rendered - then use it in the Answer() above
+        Mockito.verify(velocityContext).put(Mockito.eq("id"), Mockito.anyString());
+
+        Mockito.verify(getTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
+        Mockito.verify(jenkinsServer).runScript(GET_GROOVY_SCRIPT);
+        Mockito.verify(createTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
+        Mockito.verify(jenkinsServer).runScript(CREATE_GROOVY_SCRIPT);
+
+        Mockito.verify(jsc).setStashPassword(ID);
+        Mockito.verify(jsc).save();
+    }
+
+    @Test
+    public void testDetectsExistingSshCredentials() throws IOException {
+
+        Mockito.when(jenkinsServer.runScript(GET_GROOVY_SCRIPT)).thenReturn("Result: " + ID);
+
+        jenkinsManager.createOrUpdateCredentialForUser(jsc, rc);
+
+        Mockito.verify(getTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
+        Mockito.verify(jenkinsServer).runScript(GET_GROOVY_SCRIPT);
+        Mockito.verify(jenkinsServer, Mockito.never()).runScript(CREATE_GROOVY_SCRIPT);
+
+        Mockito.verify(jsc).setStashPassword(ID);
+        Mockito.verify(jsc).save();
     }
 }

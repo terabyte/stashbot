@@ -14,11 +14,13 @@
 package com.palantir.stash.stashbot.managers;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +28,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.http.client.HttpResponseException;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 
@@ -56,6 +61,9 @@ import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManager implements DisposableBean {
 
+    static final String GROOVY_GET_CREDENTIALS_TEMPLATE_FILE = "get_credential_uuid_for_user.groovy.vm";
+    static final String GROOVY_CREATE_CREDENTIALS_TEMPLATE_FILE = "create_credential_for_user.groovy.vm";
+
     private final ConfigurationPersistenceService cpm;
     private final JobTemplateManager jtm;
     private final JenkinsJobXmlFormatter xmlFormatter;
@@ -68,11 +76,12 @@ public class JenkinsManager implements DisposableBean {
     private final UserService us;
     private final UserManager um;
     private final ExecutorService es;
+    private final VelocityManager vm;
 
     public JenkinsManager(RepositoryService repositoryService,
         ConfigurationPersistenceService cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
         JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf, SecurityService ss,
-        UserService us, UserManager um) {
+        UserService us, UserManager um, VelocityManager vm) {
         this.repositoryService = repositoryService;
         this.cpm = cpm;
         this.jtm = jtm;
@@ -85,6 +94,69 @@ public class JenkinsManager implements DisposableBean {
         this.us = us;
         this.um = um;
         this.es = Executors.newCachedThreadPool();
+        this.vm = vm;
+    }
+
+    /**
+     * This method queries to see if a credential exists. If it does, it sets the "password" to the UUID of said
+     * credential. Otherwise, it creates it, then does that.
+     * 
+     * @param jsc
+     * @param rc
+     */
+    public void createOrUpdateCredentialForUser(JenkinsServerConfiguration jsc, RepositoryConfiguration rc) {
+        try {
+            JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc, rc);
+
+            String id;
+            {
+                VelocityContext vc = vm.getVelocityContext();
+                // for getting the existing credential, the only thing we need is $user
+                vc.put("user", jsc.getStashUsername());
+                VelocityEngine ve = vm.getVelocityEngine();
+                StringWriter groovy = new StringWriter();
+                Template template = ve.getTemplate(GROOVY_GET_CREDENTIALS_TEMPLATE_FILE);
+                template.merge(vc, groovy);
+
+                String result = js.runScript(groovy.toString());
+                if (!result.startsWith("Result: ")) {
+                    throw new RuntimeException("Unable to query for credentials: " + result);
+                }
+                id = result.split("Result: ")[1];
+            }
+
+            if (id.equals("not found")) {
+                // we have to create it
+                {
+                    VelocityContext vc = vm.getVelocityContext();
+                    // for creating the credential, the args we need are: user, privKey, and id (where id is a random UUID)
+                    vc.put("user", jsc.getStashUsername());
+                    String uuid = UUID.randomUUID().toString();
+                    vc.put("id", uuid);
+                    vc.put("privKey", cpm.getDefaultPrivateSshKey());
+                    VelocityEngine ve = vm.getVelocityEngine();
+                    StringWriter groovy = new StringWriter();
+                    Template template = ve.getTemplate(GROOVY_CREATE_CREDENTIALS_TEMPLATE_FILE);
+                    template.merge(vc, groovy);
+
+                    String result = js.runScript(groovy.toString());
+                    if (!result.startsWith("Result: ")) {
+                        throw new RuntimeException("Unable to query for credentials: " + result);
+                    }
+                    id = result.split("Result: ")[1];
+                    if (!id.equals(uuid)) {
+                        log.error("Possible problem trying to create credentials (ID should be " + uuid + " but was: "
+                            + result);
+                    }
+                }
+            }
+            jsc.setStashPassword(id);
+            jsc.save();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void updateRepo(Repository repo) {
@@ -534,5 +606,4 @@ public class JenkinsManager implements DisposableBean {
             Thread.sleep(50);
         }
     }
-
 }

@@ -28,7 +28,6 @@ import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 public class PluginUserManager {
 
     private final String STASH_EMAIL = "nobody@example.com";
-    private final int KEY_SIZE = 2048;
 
     private final UserAdminService uas;
     private final UserService us;
