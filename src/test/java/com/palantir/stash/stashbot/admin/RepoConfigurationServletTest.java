@@ -348,7 +348,7 @@ public class RepoConfigurationServletTest {
     }
 
     @Test
-    public void testAddsKeyToRepo() throws SQLException, ServletException, IOException {
+    public void testAddsUserToRepo() throws SQLException, ServletException, IOException {
         when(req.getParameter("jenkinsServerName")).thenReturn("default");
         when(cpm.getDefaultPublicSshKey()).thenReturn("somekey");
         when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.CREDENTIAL_MANUAL_SSH_KEY);
@@ -356,6 +356,6 @@ public class RepoConfigurationServletTest {
         rcs.doPost(req, res);
 
         // verify the key is added
-        verify(pum).addKeyToRepoForReading("somekey", mockRepo);
+        verify(pum).addUserToRepoForReading("someuser", mockRepo);
     }
 }

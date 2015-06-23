@@ -24,10 +24,12 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.ssh.api.SshKeyService;
 import com.atlassian.stash.user.PermissionAdminService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserAdminService;
 import com.atlassian.stash.user.UserService;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 
@@ -39,6 +41,10 @@ public class PluginUserManagerTest {
     private PermissionAdminService pas;
     @Mock
     private UserService us;
+    @Mock
+    private SshKeyService sks;
+    @Mock
+    private ConfigurationPersistenceService cps;
 
     private PluginUserManager pum;
 
@@ -53,6 +59,7 @@ public class PluginUserManagerTest {
 
     private final String USER = "someUser";
     private final String PW = "somePassword";
+    private final String SSH_KEY = "someKey";
 
     @Before
     public void setUp() {
@@ -61,8 +68,9 @@ public class PluginUserManagerTest {
 
         Mockito.when(jsc.getStashUsername()).thenReturn(USER);
         Mockito.when(jsc.getStashPassword()).thenReturn(PW);
+        Mockito.when(cps.getDefaultPublicSshKey()).thenReturn(SSH_KEY);
 
-        pum = new PluginUserManager(uas, pas, us, plf);
+        pum = new PluginUserManager(uas, pas, us, sks, cps, plf);
     }
 
     private class GetUserByName implements Answer<StashUser> {
@@ -102,9 +110,6 @@ public class PluginUserManagerTest {
         pum.createStashbotUser(jsc);
 
         Mockito.verify(uas).createUser(Mockito.eq(USER), Mockito.eq(PW), Mockito.eq(USER), Mockito.anyString());
-    }
-
-    @Test
-    public void testAddUserToRepo() throws URISyntaxException {
+        Mockito.verify(sks).addForUser(stashUser, SSH_KEY);
     }
 }

@@ -121,6 +121,7 @@
     <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
     <component-import key="securityService" interface="com.atlassian.stash.user.SecurityService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+    <component-import key="sshKeyService" interface="com.atlassian.stash.ssh.api.SshKeyService"/>
     <component-import key="userAdminService" interface="com.atlassian.stash.user.UserAdminService"/>
     <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager"/>
     <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>

@@ -129,6 +129,12 @@
             <version>${stash.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- need for SshKeyService -->
+        <dependency>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-ssh</artifactId>
+            <version>${stash.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
             <artifactId>jenkins-client</artifactId>
