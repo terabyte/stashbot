@@ -173,11 +173,14 @@ Not every released version will necessarily be put on the Atlassian Marketplace,
 ## KNOWN BUGS
 
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
+* PluginUserManager calls UserAdminService.createUser() instead of UserAdminService.createServiceUser().  Service users can't be put in groups and thus do not use up a license slot.  We should fix this.
 
 ## PLANNED FEATURES
 
 * Better Test coverage - especially integration tests
 * Error checking - validate hashes sent to build status, etc.
+* Switch to using access keys (aka deployment keys) instead of creating a user
+* Better handling of ssh keys and jenkins credentials (i.e. support multiple keys with different permissions)
 
 ### SSH Key Support
 
