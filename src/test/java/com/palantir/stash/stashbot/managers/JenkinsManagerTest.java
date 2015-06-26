@@ -173,6 +173,7 @@ public class JenkinsManagerTest {
         Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");
         Mockito.when(jsc.getPassword()).thenReturn("jenkins_password");
         Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
+        Mockito.when(cpm.getDefaultPrivateSshKey()).thenReturn("");
 
         Mockito.when(repo.getName()).thenReturn("somename");
         Mockito.when(repo.getSlug()).thenReturn("slug");
@@ -203,7 +204,7 @@ public class JenkinsManagerTest {
 
         Mockito.verify(xmlFormatter).generateJobXml(jt, repo);
         Mockito.verify(jenkinsServer).createJob(Mockito.anyString(),
-            xmlCaptor.capture());
+            xmlCaptor.capture(), Mockito.eq(false));
 
         Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
     }
@@ -227,9 +228,9 @@ public class JenkinsManagerTest {
 
         Mockito.verify(xmlFormatter).generateJobXml(jt, repo);
         Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(),
-            xmlCaptor.capture());
+            xmlCaptor.capture(), Mockito.eq(false));
         Mockito.verify(jenkinsServer, Mockito.never()).createJob(
-            Mockito.anyString(), Mockito.anyString());
+            Mockito.anyString(), Mockito.anyString(), Mockito.eq(false));
 
         Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
     }
@@ -259,7 +260,7 @@ public class JenkinsManagerTest {
         ArgumentCaptor<Map<String, String>> paramCaptor = ArgumentCaptor
             .forClass(forClass);
 
-        Mockito.verify(existingJob).build(paramCaptor.capture());
+        Mockito.verify(existingJob).build(paramCaptor.capture(), Mockito.eq(false));
 
         Map<String, String> paramMap = paramCaptor.getValue();
         Assert.assertTrue(paramMap.containsKey("buildHead"));
@@ -280,7 +281,7 @@ public class JenkinsManagerTest {
 
         for (JobTemplate t : templates) {
             Mockito.verify(jenkinsServer).createJob(
-                Mockito.eq(t.getBuildNameFor(repo)), Mockito.anyString());
+                Mockito.eq(t.getBuildNameFor(repo)), Mockito.anyString(), Mockito.eq(false));
         }
     }
 
@@ -307,7 +308,7 @@ public class JenkinsManagerTest {
 
         jenkinsManager.updateJob(repo, jt);
 
-        Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(), Mockito.anyString(), Mockito.eq(false));
     }
 
     @Test

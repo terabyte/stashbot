@@ -16,6 +16,7 @@ package com.palantir.stash.stashbot.managers;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -123,7 +124,7 @@ public class JenkinsManager implements DisposableBean {
                 if (!result.startsWith("Result: ")) {
                     throw new RuntimeException("Unable to query for credentials: " + result);
                 }
-                id = result.split("Result: ")[1];
+                id = result.split("Result: ")[1].trim();
             }
 
             if (id.equals("not found")) {
@@ -134,7 +135,8 @@ public class JenkinsManager implements DisposableBean {
                     vc.put("user", jsc.getStashUsername());
                     String uuid = UUID.randomUUID().toString();
                     vc.put("id", uuid);
-                    vc.put("privKey", cpm.getDefaultPrivateSshKey());
+                    // key contains "+" in it, which needs to be encoded when posted to the server.
+                    vc.put("privKey", URLEncoder.encode(cpm.getDefaultPrivateSshKey(), "UTF-8"));
                     VelocityEngine ve = vm.getVelocityEngine();
                     StringWriter groovy = new StringWriter();
                     Template template = ve.getTemplate(GROOVY_CREATE_CREDENTIALS_TEMPLATE_FILE);
@@ -144,7 +146,7 @@ public class JenkinsManager implements DisposableBean {
                     if (!result.startsWith("Result: ")) {
                         throw new RuntimeException("Unable to query for credentials: " + result);
                     }
-                    id = result.split("Result: ")[1];
+                    id = result.split("Result: ")[1].trim();
                     if (!id.equals(uuid)) {
                         log.error("Possible problem trying to create credentials (ID should be " + uuid + " but was: "
                             + result);
@@ -181,6 +183,20 @@ public class JenkinsManager implements DisposableBean {
                 .getJenkinsServer(jsc, rc);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
+            // if the job is using credentials, we have to ensure they are deployed first
+            switch (jsc.getAuthenticationMode()) {
+            case CREDENTIAL_AUTOMATIC_SSH_KEY:
+                String id = ensureCredentialExists(jsc, rc);
+                if (!jsc.getCredentialId().equals(id)) {
+                    jsc.setCredentialId(id);
+                    jsc.save();
+                }
+                break;
+            case CREDENTIAL_MANUALLY_CONFIGURED:
+            case USERNAME_AND_PASSWORD:
+                // do nothing
+                break;
+            }
             // If we try to create a job which already exists, we still get a
             // 200... so we should check first to make
             // sure it doesn't already exist
@@ -194,7 +210,7 @@ public class JenkinsManager implements DisposableBean {
             String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
 
             log.trace("Sending XML to jenkins to create job: " + xml);
-            jenkinsServer.createJob(jobName, xml);
+            jenkinsServer.createJob(jobName, xml, false);
         } catch (IOException e) {
             // TODO: something other than just rethrow?
             throw new RuntimeException(e);
@@ -222,7 +238,7 @@ public class JenkinsManager implements DisposableBean {
                 .getJenkinsServer(jsc, rc);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
-            // if the job is using credentials, we have to deploy that first
+            // if the job is using credentials, we have to ensure they are deployed first
             switch (jsc.getAuthenticationMode()) {
             case CREDENTIAL_AUTOMATIC_SSH_KEY:
                 String id = ensureCredentialExists(jsc, rc);
@@ -236,7 +252,6 @@ public class JenkinsManager implements DisposableBean {
                 // do nothing
                 break;
             }
-            // any time we update a job in jenkins, we might need to first create the credential 
             // If we try to create a job which already exists, we still get a
             // 200... so we should check first to make
             // sure it doesn't already exist
@@ -247,7 +262,7 @@ public class JenkinsManager implements DisposableBean {
             if (jobMap.containsKey(jobName)) {
                 if (!rc.getPreserveJenkinsJobConfig()) {
                     log.trace("Sending XML to jenkins to update job: " + xml);
-                    jenkinsServer.updateJob(jobName, xml);
+                    jenkinsServer.updateJob(jobName, xml, false);
                 } else {
                     log.trace("Skipping sending XML to jenkins. Repo Config is set to preserve jenkins job config.");
                 }
@@ -255,7 +270,7 @@ public class JenkinsManager implements DisposableBean {
             }
 
             log.trace("Sending XML to jenkins to create job: " + xml);
-            jenkinsServer.createJob(jobName, xml);
+            jenkinsServer.createJob(jobName, xml, false);
         } catch (IOException e) {
             // TODO: something other than just rethrow?
             throw new RuntimeException(e);
@@ -350,7 +365,7 @@ public class JenkinsManager implements DisposableBean {
                 builder.put("buildRef", buildRef);
             }
 
-            jobMap.get(key).build(builder.build());
+            jobMap.get(key).build(builder.build(), false);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -421,7 +436,7 @@ public class JenkinsManager implements DisposableBean {
                     .getLatestChangeset().toString());
             }
 
-            jobMap.get(key).build(builder.build());
+            jobMap.get(key).build(builder.build(), false);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } catch (URISyntaxException e) {
