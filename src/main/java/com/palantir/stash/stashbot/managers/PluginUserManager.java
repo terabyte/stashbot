@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.ssh.api.SshKey;
 import com.atlassian.stash.ssh.api.SshKeyService;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionAdminService;
@@ -29,6 +30,7 @@ import com.atlassian.stash.user.UserService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.util.KeyUtils;
 
 public class PluginUserManager {
 
@@ -39,15 +41,17 @@ public class PluginUserManager {
     private final PermissionAdminService pas;
     private final SshKeyService sks;
     private final ConfigurationPersistenceService cps;
+    private final KeyUtils ku;
     private final Logger log;
 
     public PluginUserManager(UserAdminService uas, PermissionAdminService pas, UserService us, SshKeyService sks,
-        ConfigurationPersistenceService cps, PluginLoggerFactory plf) {
+        ConfigurationPersistenceService cps, KeyUtils ku, PluginLoggerFactory plf) {
         this.uas = uas;
         this.pas = pas;
         this.us = us;
         this.sks = sks;
         this.cps = cps;
+        this.ku = ku;
         this.log = plf.getLoggerForThis(this);
     }
 
@@ -65,7 +69,21 @@ public class PluginUserManager {
         // have to do it as admin - but this is only available to system admins, so it should "just work" - otherwise throws AuthorisationException
         // fail silently, because what can you do?
         try {
-            sks.addForUser(user, cps.getDefaultPublicSshKey());
+            // format of key in DB is "ssh-rsa AAAA...alx label"
+            String fullPublicKeyText = cps.getDefaultPublicSshKey();
+            try {
+                SshKey pk = sks.getByPublicKey(ku.getPublicKey(fullPublicKeyText));
+                if (pk != null && pk.getUser().equals(user)) {
+                    log.debug("User " + user + " already has key registered");
+                    return;
+                }
+            } catch (IllegalArgumentException e) {
+                // key is not valid or something?  eat this exception because it will be rethrown later.
+                // this lets tests send an invalid key.
+            }
+            String parts[] = fullPublicKeyText.split(" ", 3);
+            String justTheKey = parts[0] + " " + parts[1];
+            sks.addForUser(user, justTheKey, parts[2]);
         } catch (AuthorisationException e) {
             log.error("Unable to add ssh key - code not running as admin?", e);
         } catch (ConstraintViolationException e) {

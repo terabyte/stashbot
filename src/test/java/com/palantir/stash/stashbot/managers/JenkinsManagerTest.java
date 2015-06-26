@@ -52,6 +52,7 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 import com.palantir.stash.stashbot.mocks.MockSecurityServiceBuilder;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
@@ -171,6 +172,7 @@ public class JenkinsManagerTest {
         Mockito.when(jsc.getStashUsername()).thenReturn("stash_username");
         Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");
         Mockito.when(jsc.getPassword()).thenReturn("jenkins_password");
+        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
 
         Mockito.when(repo.getName()).thenReturn("somename");
         Mockito.when(repo.getSlug()).thenReturn("slug");
@@ -329,7 +331,7 @@ public class JenkinsManagerTest {
         Mockito.when(jenkinsServer.runScript(GET_GROOVY_SCRIPT)).thenReturn("Result: not found");
         Mockito.when(jenkinsServer.runScript(CREATE_GROOVY_SCRIPT)).thenReturn("Result: " + ID);
 
-        jenkinsManager.createOrUpdateCredentialForUser(jsc, rc);
+        jenkinsManager.ensureCredentialExists(jsc, rc);
 
         // capture the uuid when it is rendered - then use it in the Answer() above
         Mockito.verify(velocityContext).put(Mockito.eq("id"), Mockito.anyString());
@@ -338,9 +340,6 @@ public class JenkinsManagerTest {
         Mockito.verify(jenkinsServer).runScript(GET_GROOVY_SCRIPT);
         Mockito.verify(createTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
         Mockito.verify(jenkinsServer).runScript(CREATE_GROOVY_SCRIPT);
-
-        Mockito.verify(jsc).setStashPassword(ID);
-        Mockito.verify(jsc).save();
     }
 
     @Test
@@ -348,13 +347,10 @@ public class JenkinsManagerTest {
 
         Mockito.when(jenkinsServer.runScript(GET_GROOVY_SCRIPT)).thenReturn("Result: " + ID);
 
-        jenkinsManager.createOrUpdateCredentialForUser(jsc, rc);
+        jenkinsManager.ensureCredentialExists(jsc, rc);
 
         Mockito.verify(getTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
         Mockito.verify(jenkinsServer).runScript(GET_GROOVY_SCRIPT);
         Mockito.verify(jenkinsServer, Mockito.never()).runScript(CREATE_GROOVY_SCRIPT);
-
-        Mockito.verify(jsc).setStashPassword(ID);
-        Mockito.verify(jsc).save();
     }
 }

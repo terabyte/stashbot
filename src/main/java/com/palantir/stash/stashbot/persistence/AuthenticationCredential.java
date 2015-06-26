@@ -1,6 +1,7 @@
 package com.palantir.stash.stashbot.persistence;
 
 import net.java.ao.Entity;
+import net.java.ao.schema.StringLength;
 import net.java.ao.schema.Table;
 
 /**
@@ -21,8 +22,11 @@ public interface AuthenticationCredential extends Entity {
 
     public String getPublicKey();
 
+    // if > 767, you have to use CLOB.  4096b keys are 1600+ characters.
+    @StringLength(StringLength.UNLIMITED)
     public void setPublicKey(String publicKey);
 
+    @StringLength(StringLength.UNLIMITED)
     public String getPrivateKey();
 
     public void setPrivateKey(String privateKey);

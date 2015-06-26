@@ -100,13 +100,13 @@ public class JenkinsJobXmlFormatter {
             vc.put("authVersion", 1);
             vc.put("credentialUUID", jsc.getStashPassword());
             break;
-        case CREDENTIAL_MANUAL_SSH_KEY:
+        case CREDENTIAL_AUTOMATIC_SSH_KEY:
             // switch repositoryUrl to the ssh version
             RepositoryCloneLinksRequest sshrclr =
                 new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").user(null).build();
             repositoryUrl = rs.getCloneLinks(sshrclr).iterator().next().getHref();
             vc.put("authVersion", 2);
-            vc.put("credentialUUID", jsc.getStashPassword());
+            vc.put("credentialUUID", jsc.getCredentialId());
             vc.put("privKey", cpm.getDefaultPrivateSshKey());
             break;
         }

@@ -98,13 +98,14 @@ public class JenkinsManager implements DisposableBean {
     }
 
     /**
-     * This method queries to see if a credential exists. If it does, it sets the "password" to the UUID of said
-     * credential. Otherwise, it creates it, then does that.
+     * This method queries to see if a credential exists. If it doesn't, it creates it. The ID of the credential is
+     * returned.
      * 
+     * @return the credential id
      * @param jsc
      * @param rc
      */
-    public void createOrUpdateCredentialForUser(JenkinsServerConfiguration jsc, RepositoryConfiguration rc) {
+    public String ensureCredentialExists(JenkinsServerConfiguration jsc, RepositoryConfiguration rc) {
         try {
             JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc, rc);
 
@@ -150,8 +151,7 @@ public class JenkinsManager implements DisposableBean {
                     }
                 }
             }
-            jsc.setStashPassword(id);
-            jsc.save();
+            return id;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -222,6 +222,21 @@ public class JenkinsManager implements DisposableBean {
                 .getJenkinsServer(jsc, rc);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
+            // if the job is using credentials, we have to deploy that first
+            switch (jsc.getAuthenticationMode()) {
+            case CREDENTIAL_AUTOMATIC_SSH_KEY:
+                String id = ensureCredentialExists(jsc, rc);
+                if (!jsc.getCredentialId().equals(id)) {
+                    jsc.setCredentialId(id);
+                    jsc.save();
+                }
+                break;
+            case CREDENTIAL_MANUALLY_CONFIGURED:
+            case USERNAME_AND_PASSWORD:
+                // do nothing
+                break;
+            }
+            // any time we update a job in jenkins, we might need to first create the credential 
             // If we try to create a job which already exists, we still get a
             // 200... so we should check first to make
             // sure it doesn't already exist

@@ -143,6 +143,8 @@
     <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
     <component key="jobTemplateManager" class="com.palantir.stash.stashbot.jobtemplate.JobTemplateManager" />
+    <component key="keyUtils" class="com.palantir.stash.stashbot.util.KeyUtils" />
+    <component key="persistenceEvents" class="com.palantir.stash.stashbot.persistence.PersistenceEvents" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
     <component key="stashbotLoggerFactory" class="com.palantir.stash.stashbot.logger.PluginLoggerFactory"/>

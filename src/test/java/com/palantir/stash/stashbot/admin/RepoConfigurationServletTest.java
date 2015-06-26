@@ -351,7 +351,7 @@ public class RepoConfigurationServletTest {
     public void testAddsUserToRepo() throws SQLException, ServletException, IOException {
         when(req.getParameter("jenkinsServerName")).thenReturn("default");
         when(cpm.getDefaultPublicSshKey()).thenReturn("somekey");
-        when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.CREDENTIAL_MANUAL_SSH_KEY);
+        when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.CREDENTIAL_AUTOMATIC_SSH_KEY);
 
         rcs.doPost(req, res);
 

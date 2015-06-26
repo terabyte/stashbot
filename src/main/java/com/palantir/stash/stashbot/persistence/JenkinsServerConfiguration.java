@@ -33,9 +33,9 @@ public interface JenkinsServerConfiguration extends Entity {
 
     static public enum AuthenticationMode {
         // NOTE: when you add stuff here, edit StashbotUrlBuilder as well.
+        CREDENTIAL_AUTOMATIC_SSH_KEY(Constants.CASK_VALUE, "Automatically Configured SSH Key Credential UUID"),
         USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"),
-        CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID"),
-        CREDENTIAL_MANUAL_SSH_KEY(Constants.CMSK_VALUE, "Manually Configured SSH Key Credential UUID");
+        CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID");
 
         private final String description;
         private final String mode;
@@ -45,7 +45,7 @@ public interface JenkinsServerConfiguration extends Entity {
 
             public static final String UAP_VALUE = "USERNAME_AND_PASSWORD";
             public static final String CMC_VALUE = "CREDENTIAL_MANUALLY_CONFIGURED";
-            public static final String CMSK_VALUE = "CREDENTIAL_MANUAL_SSH_KEY";
+            public static final String CASK_VALUE = "CREDENTIAL_AUTOMATIC_SSH_KEY";
         }
 
         AuthenticationMode(String mode, String description) {
@@ -68,8 +68,8 @@ public interface JenkinsServerConfiguration extends Entity {
             if (mode.equals(Constants.CMC_VALUE)) {
                 return CREDENTIAL_MANUALLY_CONFIGURED;
             }
-            if (mode.equals(Constants.CMSK_VALUE)) {
-                return CREDENTIAL_MANUAL_SSH_KEY;
+            if (mode.equals(Constants.CASK_VALUE)) {
+                return CREDENTIAL_AUTOMATIC_SSH_KEY;
             }
             throw new IllegalArgumentException("invalid value for enum: " + mode);
         }
@@ -160,6 +160,11 @@ public interface JenkinsServerConfiguration extends Entity {
     public String getStashPassword();
 
     public void setStashPassword(String stashPassword);
+
+    @Default("empty")
+    public String getCredentialId();
+
+    public void setCredentialId(String credentialId);
 
     /**
      * Maximum number of verify builds to trigger when pushed all at once. This limit makes it so that if you push a
