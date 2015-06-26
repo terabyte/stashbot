@@ -85,7 +85,6 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${google.guava.libversion}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency> <!-- used to generate ssh keys -->
             <groupId>com.jcraft</groupId>
@@ -127,13 +126,14 @@
             <groupId>com.atlassian.stash</groupId>
             <artifactId>stash-build-integration</artifactId>
             <version>${stash.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <!-- need for SshKeyService -->
         <dependency>
             <groupId>com.atlassian.stash</groupId>
             <artifactId>stash-ssh</artifactId>
             <version>${stash.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
