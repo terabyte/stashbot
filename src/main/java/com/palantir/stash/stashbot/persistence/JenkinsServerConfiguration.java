@@ -19,10 +19,12 @@ import net.java.ao.Implementation;
 import net.java.ao.Mutator;
 import net.java.ao.Preload;
 import net.java.ao.schema.Default;
+import net.java.ao.schema.Ignore;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
+import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -34,17 +36,19 @@ public interface JenkinsServerConfiguration extends Entity {
     static public enum AuthenticationMode {
         // NOTE: when you add stuff here, edit StashbotUrlBuilder as well.
         CREDENTIAL_AUTOMATIC_SSH_KEY(Constants.CASK_VALUE, "Automatically Configured SSH Key Credential UUID"),
-        USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"),
-        CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID");
+		USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"), CREDENTIAL_MANUALLY_CONFIGURED(
+				Constants.CMC_VALUE, "Manually Configured Credential UUID");
 
         private final String description;
         private final String mode;
 
-        // This is necessary because AO annotations require static string constants
+		// This is necessary because AO annotations require static string
+		// constants
         public static class Constants {
 
             public static final String UAP_VALUE = "USERNAME_AND_PASSWORD";
             public static final String CMC_VALUE = "CREDENTIAL_MANUALLY_CONFIGURED";
+			// public static final String CUAP_VALUE = "CUAP";
             public static final String CASK_VALUE = "CREDENTIAL_AUTOMATIC_SSH_KEY";
         }
 
@@ -86,9 +90,11 @@ public interface JenkinsServerConfiguration extends Entity {
          */
         public ImmutableMap<String, String> getSelectListEntry(boolean selected) {
             if (selected) {
-                return ImmutableMap.of("text", this.getDescription(), "value", this.toString(), "selected", "true");
+				return ImmutableMap.of("text", this.getDescription(), "value",
+						this.toString(), "selected", "true");
             } else {
-                return ImmutableMap.of("text", this.getDescription(), "value", this.toString());
+				return ImmutableMap.of("text", this.getDescription(), "value",
+						this.toString());
             }
         }
 
@@ -98,8 +104,10 @@ public interface JenkinsServerConfiguration extends Entity {
          * @param selected
          * @return
          */
-        public static ImmutableList<ImmutableMap<String, String>> getSelectList(AuthenticationMode selected) {
-            ImmutableList.Builder<ImmutableMap<String, String>> builder = ImmutableList.builder();
+		public static ImmutableList<ImmutableMap<String, String>> getSelectList(
+				AuthenticationMode selected) {
+			ImmutableList.Builder<ImmutableMap<String, String>> builder = ImmutableList
+					.builder();
             for (AuthenticationMode ae : AuthenticationMode.values()) {
                 if (selected != null && selected.equals(ae)) {
                     builder.add(ae.getSelectListEntry(true));
@@ -142,9 +150,10 @@ public interface JenkinsServerConfiguration extends Entity {
 
     public void setAuthenticationModeStr(String authMode);
 
-    /////
-    // These are implemented in JenkinsServerConfigurationImpl - so the user can use enums
-    /////
+	// ///
+	// These are implemented in JenkinsServerConfigurationImpl - so the user can
+	// use enums
+	// ///
     public AuthenticationMode getAuthenticationMode();
 
     public void setAuthenticationMode(AuthenticationMode authMode);
@@ -167,9 +176,10 @@ public interface JenkinsServerConfiguration extends Entity {
     public void setCredentialId(String credentialId);
 
     /**
-     * Maximum number of verify builds to trigger when pushed all at once. This limit makes it so that if you push a
-     * chain of 100 new commits all at once, instead of saturating your build hardware, only the N most recent commits
-     * are built. Set to "0" for infinite. Default is 10.
+	 * Maximum number of verify builds to trigger when pushed all at once. This
+	 * limit makes it so that if you push a chain of 100 new commits all at
+	 * once, instead of saturating your build hardware, only the N most recent
+	 * commits are built. Set to "0" for infinite. Default is 10.
      */
     @NotNull
     @Default("10")
@@ -177,7 +187,21 @@ public interface JenkinsServerConfiguration extends Entity {
 
     public void setMaxVerifyChain(Integer max);
 
-    // For security - allow a jenkins server config to be locked to non-system-admins
+	public String getPrefixTemplate();
+
+	public void setPrefixTemplate(String template);
+
+	// Implemented in JenkinsServerConfigurationImpl - expands variables in
+	// template and appends to url.
+	@Ignore
+	public String getUrlForRepo(Repository r);
+
+	@Ignore
+	@Deprecated
+	public void setUrlForRepo(String s);
+
+	// For security - allow a jenkins server config to be locked to
+	// non-system-admins
     @NotNull
     @Default("false")
     @Accessor("LOCKED")

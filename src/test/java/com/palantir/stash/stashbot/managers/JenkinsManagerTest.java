@@ -155,8 +155,9 @@ public class JenkinsManagerTest {
         Mockito.when(
             jenkinsClientManager.getJenkinsServer(
                 Mockito.any(JenkinsServerConfiguration.class),
-                Mockito.any(RepositoryConfiguration.class)))
-            .thenReturn(jenkinsServer);
+						Mockito.any(RepositoryConfiguration.class),
+						Mockito.any(Repository.class))).thenReturn(
+				jenkinsServer);
 
         jtf = new MockJobTemplateFactory(jtm);
         jtf.generateDefaultsForRepo(repo, rc);
@@ -301,7 +302,9 @@ public class JenkinsManagerTest {
 
         JobTemplate jt = jtm.getDefaultVerifyJob();
         HashMap<String, Job> jobs = Maps.newHashMap();
-        jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic requires the job be there already
+		jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic
+		// requires the job be
+		// there already
 
         Mockito.when(rc.getPreserveJenkinsJobConfig()).thenReturn(false);
         Mockito.when(jenkinsServer.getJobs()).thenReturn(jobs);
@@ -316,14 +319,16 @@ public class JenkinsManagerTest {
 
         JobTemplate jt = jtm.getDefaultVerifyJob();
         HashMap<String, Job> jobs = Maps.newHashMap();
-        jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic requires the job be there already
+		jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic
+		// requires the job be
+		// there already
 
         Mockito.when(rc.getPreserveJenkinsJobConfig()).thenReturn(true);
         Mockito.when(jenkinsServer.getJobs()).thenReturn(jobs);
 
         jenkinsManager.updateJob(repo, jt);
 
-        Mockito.verify(jenkinsServer, Mockito.never()).updateJob(Mockito.anyString(), Mockito.anyString());
+		Mockito.verify(jenkinsServer, Mockito.never()).updateJob(
     }
 
     @Test

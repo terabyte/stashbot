@@ -80,7 +80,8 @@ public class JenkinsManager implements DisposableBean {
     private final VelocityManager vm;
 
     public JenkinsManager(RepositoryService repositoryService,
-        ConfigurationPersistenceService cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
+			ConfigurationPersistenceService cpm, JobTemplateManager jtm,
+			JenkinsJobXmlFormatter xmlFormatter,
         JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf, SecurityService ss,
         UserService us, UserManager um, VelocityManager vm) {
         this.repositoryService = repositoryService;
@@ -180,7 +181,7 @@ public class JenkinsManager implements DisposableBean {
             final JenkinsServerConfiguration jsc = cpm
                 .getJenkinsServerConfiguration(rc.getJenkinsServerName());
             final JenkinsServer jenkinsServer = jenkinsClientManager
-                .getJenkinsServer(jsc, rc);
+					.getJenkinsServer(jsc, rc, repo);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
             // if the job is using credentials, we have to ensure they are deployed first
@@ -222,8 +223,9 @@ public class JenkinsManager implements DisposableBean {
     }
 
     /**
-     * This method IGNORES the current job XML, and regenerates it from scratch, and posts it. If any changes were made
-     * to the job directly via jenkins UI, this will overwrite those changes.
+	 * This method IGNORES the current job XML, and regenerates it from scratch,
+	 * and posts it. If any changes were made to the job directly via jenkins
+	 * UI, this will overwrite those changes.
      * 
      * @param repo
      * @param buildType
@@ -235,7 +237,7 @@ public class JenkinsManager implements DisposableBean {
             final JenkinsServerConfiguration jsc = cpm
                 .getJenkinsServerConfiguration(rc.getJenkinsServerName());
             final JenkinsServer jenkinsServer = jenkinsClientManager
-                .getJenkinsServer(jsc, rc);
+					.getJenkinsServer(jsc, rc, repo);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
             // if the job is using credentials, we have to ensure they are deployed first
@@ -291,13 +293,18 @@ public class JenkinsManager implements DisposableBean {
 
             @Override
             public Void call() throws Exception {
-                // TODO: See if we can do something like StateTransferringExecutorService here instead
-                ss.impersonating(su, "Running as user '" + username + "' in alternate thread asynchronously")
-                    .call(new Operation<Void, Exception>() {
+				// TODO: See if we can do something like
+				// StateTransferringExecutorService here instead
+				ss.impersonating(
+						su,
+						"Running as user '" + username
+								+ "' in alternate thread asynchronously").call(
+						new Operation<Void, Exception>() {
 
                         @Override
                         public Void perform() throws Exception {
-                            synchronousTriggerBuild(repo, jobType, hashToBuild, buildRef);
+								synchronousTriggerBuild(repo, jobType,
+										hashToBuild, buildRef);
                             return null;
                         }
                     });
@@ -316,9 +323,13 @@ public class JenkinsManager implements DisposableBean {
 
             @Override
             public Void call() throws Exception {
-                // TODO: See if we can do something like StateTransferringExecutorService here instead
-                ss.impersonating(su, "Running as user '" + username + "' in alternate thread asynchronously")
-                    .call(new Operation<Void, Exception>() {
+				// TODO: See if we can do something like
+				// StateTransferringExecutorService here instead
+				ss.impersonating(
+						su,
+						"Running as user '" + username
+								+ "' in alternate thread asynchronously").call(
+						new Operation<Void, Exception>() {
 
                         @Override
                         public Void perform() throws Exception {
@@ -341,7 +352,7 @@ public class JenkinsManager implements DisposableBean {
             JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
             String jenkinsBuildId = jt.getBuildNameFor(repo);
-            String url = jsc.getUrl();
+			String url = jsc.getUrlForRepo(repo);
             String user = jsc.getUsername();
             String password = jsc.getPassword();
 
@@ -350,7 +361,7 @@ public class JenkinsManager implements DisposableBean {
                 + " pw: " + password.replaceAll(".", "*") + ")");
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
-                rc);
+					rc, repo);
             Map<String, Job> jobMap = js.getJobs();
             String key = jt.getBuildNameFor(repo);
 
@@ -403,7 +414,7 @@ public class JenkinsManager implements DisposableBean {
             JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
             String jenkinsBuildId = jt.getBuildNameFor(repo);
-            String url = jsc.getUrl();
+			String url = jsc.getUrlForRepo(repo);
             String user = jsc.getUsername();
             String password = jsc.getPassword();
 
@@ -412,7 +423,7 @@ public class JenkinsManager implements DisposableBean {
                 + " pw: " + password.replaceAll(".", "*") + ")");
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
-                rc);
+					rc, repo);
             Map<String, Job> jobMap = js.getJobs();
             String key = jt.getBuildNameFor(repo);
 
@@ -431,7 +442,8 @@ public class JenkinsManager implements DisposableBean {
                 // fromRef may be in a different repo
                 builder.put("mergeRef", pullRequest.getFromRef().getId());
                 builder.put("buildRef", pullRequest.getToRef().getId());
-                builder.put("mergeRefUrl", sub.buildCloneUrl(pullRequest.getFromRef().getRepository(), jsc));
+				builder.put("mergeRefUrl", sub.buildCloneUrl(pullRequest
+						.getFromRef().getRepository(), jsc));
                 builder.put("mergeHead", pullRequest.getFromRef()
                     .getLatestChangeset().toString());
             }
@@ -472,10 +484,9 @@ public class JenkinsManager implements DisposableBean {
         private final Repository r;
         private final Logger log;
 
-        public CreateMissingRepositoryVisitor(
-            JenkinsClientManager jcm, JobTemplateManager jtm,
-            ConfigurationPersistenceService cpm, Repository r,
-            PluginLoggerFactory lf) {
+		public CreateMissingRepositoryVisitor(JenkinsClientManager jcm,
+				JobTemplateManager jtm, ConfigurationPersistenceService cpm,
+				Repository r, PluginLoggerFactory lf) {
             this.jcm = jcm;
             this.jtm = jtm;
             this.cpm = cpm;
@@ -496,7 +507,7 @@ public class JenkinsManager implements DisposableBean {
 
             // make sure jobs exist
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
-            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+			JenkinsServer js = jcm.getJenkinsServer(jsc, rc, this.r);
             Map<String, Job> jobs = js.getJobs();
 
             for (JobTemplate template : templates) {
@@ -554,10 +565,9 @@ public class JenkinsManager implements DisposableBean {
         private final Repository r;
         private final Logger log;
 
-        public UpdateAllRepositoryVisitor(
-            JenkinsClientManager jcm, JobTemplateManager jtm,
-            ConfigurationPersistenceService cpm, Repository r,
-            PluginLoggerFactory lf) {
+		public UpdateAllRepositoryVisitor(JenkinsClientManager jcm,
+				JobTemplateManager jtm, ConfigurationPersistenceService cpm,
+				Repository r, PluginLoggerFactory lf) {
             this.jcm = jcm;
             this.jtm = jtm;
             this.cpm = cpm;
@@ -578,7 +588,7 @@ public class JenkinsManager implements DisposableBean {
 
             // make sure jobs are up to date
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
-            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+			JenkinsServer js = jcm.getJenkinsServer(jsc, rc, this.r);
             Map<String, Job> jobs = js.getJobs();
             for (JobTemplate jobTemplate : templates) {
                 if (!jobs.containsKey(jobTemplate.getBuildNameFor(r))) {
@@ -629,9 +639,11 @@ public class JenkinsManager implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
-        // on a plugin upgrade or whatever, we want to make sure all tasks get executed.
+		// on a plugin upgrade or whatever, we want to make sure all tasks get
+		// executed.
         es.shutdown();
-        // This might be stupid.  I'm aware.  But the glorious unit tests say I need it.
+		// This might be stupid. I'm aware. But the glorious unit tests say I
+		// need it.
         while (!es.isTerminated()) {
             Thread.sleep(50);
         }
