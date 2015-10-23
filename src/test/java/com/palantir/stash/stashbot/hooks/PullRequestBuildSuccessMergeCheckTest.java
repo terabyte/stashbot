@@ -89,7 +89,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private BuildStats bsB;
 
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
-    private List<Commit> changesets;
+    private List<Commit> commits;
 
     @Before
     public void setUp() throws SQLException {
@@ -125,11 +125,11 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(prm2.getToSha()).thenReturn(TO_SHA2);
         Mockito.when(prm2.getFromSha()).thenReturn(FROM_SHA);
 
-        changesets = ImmutableList.of(changeA, changeB);
+        commits = ImmutableList.of(changeA, changeB);
         Mockito.when(
             cs.getCommitsBetween(Mockito.any(CommitsBetweenRequest.class), Mockito.any(PageRequest.class)))
             .thenReturn(mockPage);
-        Mockito.when(mockPage.getValues()).thenReturn(changesets);
+        Mockito.when(mockPage.getValues()).thenReturn(commits);
         Mockito.when(mockPage.getIsLastPage()).thenReturn(true);
         Mockito.when(changeA.getId()).thenReturn(SHA_A);
         Mockito.when(changeB.getId()).thenReturn(SHA_B);
