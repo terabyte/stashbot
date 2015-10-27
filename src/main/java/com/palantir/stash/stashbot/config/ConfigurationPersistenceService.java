@@ -74,7 +74,8 @@ public interface ConfigurationPersistenceService {
             String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
-            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
+            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig, boolean timestampJobOutputEnabled,
+            boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings)
             throws SQLException, IllegalArgumentException;
 
     public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -152,6 +153,29 @@ public interface ConfigurationPersistenceService {
 
         public Boolean getEmailPerModuleEmail() {
             return emailPerModuleEmail;
+        }
+    }
+
+    public static class BuildTimeoutSettings {
+
+        private final Boolean buildTimeoutEnabled;
+        private final Integer buildTimeout;
+
+        public BuildTimeoutSettings() {
+            this(false, null);
+        }
+
+        public BuildTimeoutSettings(Boolean buildTimeoutEnabled, Integer buildTimeout) {
+            this.buildTimeoutEnabled = buildTimeoutEnabled;
+            this.buildTimeout = buildTimeout;
+        }
+
+        public Boolean getBuildTimeoutEnabled() {
+            return buildTimeoutEnabled;
+        }
+
+        public Integer getBuildTimeout() {
+            return buildTimeout;
         }
     }
 
