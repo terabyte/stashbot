@@ -44,7 +44,8 @@ import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
-public class ConfigurationPersistenceImpl implements ConfigurationPersistenceService {
+public class ConfigurationPersistenceImpl implements
+ConfigurationPersistenceService {
 
     private final ActiveObjects ao;
     private final Logger log;
@@ -52,14 +53,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
-    public ConfigurationPersistenceImpl(ActiveObjects ao, PluginLoggerFactory lf, EventPublisher publisher) {
+	public ConfigurationPersistenceImpl(ActiveObjects ao,
+			PluginLoggerFactory lf, EventPublisher publisher) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
         this.publisher = publisher;
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#deleteJenkinsServerConfiguration(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * deleteJenkinsServerConfiguration(java.lang.String)
      */
     @Override
     public void deleteJenkinsServerConfiguration(String name) {
@@ -74,8 +79,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getJenkinsServerConfiguration(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getJenkinsServerConfiguration(java.lang.String)
      */
     @Override
     public JenkinsServerConfiguration getJenkinsServerConfiguration(String name)
@@ -96,53 +104,93 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1);
             configs[0].setUrl(url);
+			configs[0].save();
+		}
+		String template = configs[0].getPrefixTemplate();
+		if (template.endsWith("/")) {
+			template = template.substring(0, template.length() - 1);
+			configs[0].setPrefixTemplate(template);
             configs[0].save();
         }
         return configs[0];
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setJenkinsServerConfigurationFromRequest(javax.servlet.http.HttpServletRequest)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setJenkinsServerConfigurationFromRequest
+	 * (javax.servlet.http.HttpServletRequest)
      */
     @Override
-    public void setJenkinsServerConfigurationFromRequest(HttpServletRequest req) throws SQLException,
-        NumberFormatException {
+	public void setJenkinsServerConfigurationFromRequest(HttpServletRequest req)
+			throws SQLException, NumberFormatException {
 
         String name = req.getParameter("name");
         String url = req.getParameter("url");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
-        AuthenticationMode am = AuthenticationMode.fromMode(req.getParameter("authenticationMode"));
+		AuthenticationMode am = AuthenticationMode.fromMode(req
+				.getParameter("authenticationMode"));
         String stashUsername = req.getParameter("stashUsername");
         String stashPassword = req.getParameter("stashPassword");
-        Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
+		Integer maxVerifyChain = Integer.parseInt(req
+				.getParameter("maxVerifyChain"));
+		String prefixTemplate = req.getParameter("prefixTemplate");
         String lockStr = req.getParameter("locked");
-        Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false : true;
+		Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false
+				: true;
 
-        setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain,
+		setJenkinsServerConfiguration(name, url, username, password, am,
+				stashUsername, stashPassword, maxVerifyChain, prefixTemplate,
             isLocked);
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setJenkinsServerConfiguration(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setJenkinsServerConfiguration(java.lang.String, java.lang.String,
+	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+	 * java.lang.Integer)
      */
     @Override
     @Deprecated
     public void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
+			String username, String password, String stashUsername,
+			String stashPassword, Integer maxVerifyChain) throws SQLException {
+		setJenkinsServerConfiguration(name, url, username, password,
+				AuthenticationMode.USERNAME_AND_PASSWORD, stashUsername,
+				stashPassword, maxVerifyChain, false);
+	}
+
+	@Override
+	public void setJenkinsServerConfiguration(String name, String url,
+			String username, String password,
+			AuthenticationMode authenticationMode, String stashUsername,
+			String stashPassword, Integer maxVerifyChain, Boolean isLocked)
         throws SQLException {
-        setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
-            stashUsername, stashPassword, maxVerifyChain, false);
+		setJenkinsServerConfiguration(name, url, username, password,
+				authenticationMode, stashUsername, stashPassword,
+				maxVerifyChain, "", false);
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setJenkinsServerConfiguration(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Boolean)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setJenkinsServerConfiguration(java.lang.String, java.lang.String,
+	 * java.lang.String, java.lang.String,
+	 * com.palantir.stash.stashbot.config.JenkinsServerConfiguration
+	 * .AuthenticationMode, java.lang.String, java.lang.String,
+	 * java.lang.Integer, java.lang.Boolean)
      */
     @Override
     public void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
-        throws SQLException {
+			String username, String password,
+			AuthenticationMode authenticationMode, String stashUsername,
+			String stashPassword, Integer maxVerifyChain,
+			String prefixTemplate, Boolean isLocked) throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -158,7 +206,9 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 username), new DBParam("PASSWORD", password), new DBParam(
                 "STASH_USERNAME", stashUsername), new DBParam(
                 "STASH_PASSWORD", stashPassword), new DBParam(
-                "MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam("LOCKED", isLocked));
+					"MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam(
+					"PREFIX_TEMPLATE", prefixTemplate), new DBParam("LOCKED",
+					isLocked));
             return;
         }
         // already exists, so update it
@@ -170,12 +220,17 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         configs[0].setStashUsername(stashUsername);
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);
+		configs[0].setPrefixTemplate(prefixTemplate);
         configs[0].setLocked(isLocked);
         configs[0].save();
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getRepositoryConfigurationForRepository
+	 * (com.atlassian.stash.repository.Repository)
      */
     @Override
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -198,27 +253,41 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         return repos[0];
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setRepositoryConfigurationForRepository
+	 * (com.atlassian.stash.repository.Repository, boolean, java.lang.String,
+	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+	 * boolean)
      */
     @Override
     public void setRepositoryConfigurationForRepository(Repository repo,
         boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex,
-        String publishBuildCommand, String prebuildCommand, boolean rebuildOnUpdate)
-        throws SQLException, IllegalArgumentException {
+			String publishBuildCommand, String prebuildCommand,
+			boolean rebuildOnUpdate) throws SQLException,
+			IllegalArgumentException {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
-            verifyBranchRegex, verifyBuildCommand, false,
-            "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false);
+				verifyBranchRegex, verifyBuildCommand, false, "N/A",
+				publishBranchRegex, publishBuildCommand, false, "N/A",
+				prebuildCommand, null, rebuildOnUpdate, false, "N/A",
+				rebuildOnUpdate, null, null, new EmailSettings(), false, false);
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepositoryFromRequest(com.atlassian.stash.repository.Repository, javax.servlet.http.HttpServletRequest)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setRepositoryConfigurationForRepositoryFromRequest
+	 * (com.atlassian.stash.repository.Repository,
+	 * javax.servlet.http.HttpServletRequest)
      */
     @Override
-    public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
-        throws SQLException, NumberFormatException {
+	public void setRepositoryConfigurationForRepositoryFromRequest(
+			Repository repo, HttpServletRequest req) throws SQLException,
+			NumberFormatException {
 
         Boolean ciEnabled = getBoolean(req, "ciEnabled");
         String publishBranchRegex = req.getParameter("publishBranchRegex");
@@ -237,7 +306,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
         }
         Boolean strictVerifyMode = getBoolean(req, "isStrictVerifyMode");
-        Boolean preserveJenkinsJobConfig = getBoolean(req, "isPreserveJenkinsJobConfig");
+		Boolean preserveJenkinsJobConfig = getBoolean(req,
+				"isPreserveJenkinsJobConfig");
 
         Boolean junitEnabled = getBoolean(req, "isJunit");
         String junitPath = req.getParameter("junitPath");
@@ -249,20 +319,28 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         EmailSettings emailSettings = getEmailSettings(req);
 
-        setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
-            verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
-            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, artifactsEnabled, artifactsPath,
-            maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig);
+		setRepositoryConfigurationForRepository(repo, ciEnabled,
+				verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
+				verifyLabel, publishBranchRegex, publishBuildCommand,
+				isPublishPinned, publishLabel, prebuildCommand,
+				jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath,
+				artifactsEnabled, artifactsPath, maxVerifyChain, emailSettings,
+				strictVerifyMode, preserveJenkinsJobConfig);
         RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
-        setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, getBoolean(req, "verificationEnabled"));
-        setJobTypeStatusMapping(rc, JobType.VERIFY_PR, getBoolean(req, "verifyPREnabled"));
-        setJobTypeStatusMapping(rc, JobType.PUBLISH, getBoolean(req, "publishEnabled"));
+		setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT,
+				getBoolean(req, "verificationEnabled"));
+		setJobTypeStatusMapping(rc, JobType.VERIFY_PR,
+				getBoolean(req, "verifyPREnabled"));
+		setJobTypeStatusMapping(rc, JobType.PUBLISH,
+				getBoolean(req, "publishEnabled"));
     }
 
     @Override
-    public void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt, Boolean isEnabled) {
-        JobTypeStatusMapping[] mappings =
-            ao.find(JobTypeStatusMapping.class, "REPO_CONFIG_ID = ? and JOB_TYPE_RAW = ?", rc.getID(), jt.name());
+	public void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt,
+			Boolean isEnabled) {
+		JobTypeStatusMapping[] mappings = ao.find(JobTypeStatusMapping.class,
+				"REPO_CONFIG_ID = ? and JOB_TYPE_RAW = ?", rc.getID(),
+				jt.name());
         if (mappings.length == 0) {
             ao.create(JobTypeStatusMapping.class,
                 new DBParam("REPO_CONFIG_ID", rc.getID()),
@@ -275,9 +353,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     @Override
-    public Boolean getJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt) {
-        JobTypeStatusMapping[] mappings =
-            ao.find(JobTypeStatusMapping.class, "REPO_CONFIG_ID = ? and JOB_TYPE_RAW = ?", rc.getID(), jt.name());
+	public Boolean getJobTypeStatusMapping(RepositoryConfiguration rc,
+			JobType jt) {
+		JobTypeStatusMapping[] mappings = ao.find(JobTypeStatusMapping.class,
+				"REPO_CONFIG_ID = ? and JOB_TYPE_RAW = ?", rc.getID(),
+				jt.name());
         if (mappings.length == 0) {
             return false;
         }
@@ -285,33 +365,49 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
-        Boolean emailNotificationsEnabled = getBoolean(req, "isEmailNotificationsEnabled");
+		Boolean emailNotificationsEnabled = getBoolean(req,
+				"isEmailNotificationsEnabled");
         String emailRecipients = req.getParameter("emailRecipients");
-        Boolean emailDontNotifyEveryUnstableBuild = getBoolean(req, "isEmailForEveryUnstableBuild");
-        Boolean emailSendToIndividuals = getBoolean(req, "isEmailSendToIndividuals");
+		Boolean emailDontNotifyEveryUnstableBuild = getBoolean(req,
+				"isEmailForEveryUnstableBuild");
+		Boolean emailSendToIndividuals = getBoolean(req,
+				"isEmailSendToIndividuals");
         Boolean emailPerModuleEmail = getBoolean(req, "isEmailPerModuleEmail");
-        return new EmailSettings(emailNotificationsEnabled, emailRecipients, emailDontNotifyEveryUnstableBuild,
-            emailSendToIndividuals, emailPerModuleEmail);
+		return new EmailSettings(emailNotificationsEnabled, emailRecipients,
+				emailDontNotifyEveryUnstableBuild, emailSendToIndividuals,
+				emailPerModuleEmail);
     }
 
     private boolean getBoolean(HttpServletRequest req, String parameter) {
         return (req.getParameter(parameter) == null) ? false : true;
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, java.lang.String, boolean, java.lang.String, java.lang.Integer, com.palantir.stash.stashbot.config.EmailSettings, boolean, java.lang.Boolean)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setRepositoryConfigurationForRepository
+	 * (com.atlassian.stash.repository.Repository, boolean, java.lang.String,
+	 * java.lang.String, boolean, java.lang.String, java.lang.String,
+	 * java.lang.String, boolean, java.lang.String, java.lang.String,
+	 * java.lang.String, boolean, boolean, java.lang.String, boolean,
+	 * java.lang.String, java.lang.Integer,
+	 * com.palantir.stash.stashbot.config.EmailSettings, boolean,
+	 * java.lang.Boolean)
      */
     @Override
-    public void
-        setRepositoryConfigurationForRepository(Repository repo,
+	public void setRepositoryConfigurationForRepository(Repository repo,
             boolean isCiEnabled, String verifyBranchRegex,
             String verifyBuildCommand, boolean isVerifyPinned,
             String verifyLabel, String publishBranchRegex,
-            String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
-            String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-            boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
-            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
-            throws SQLException, IllegalArgumentException {
+			String publishBuildCommand, boolean isPublishPinned,
+			String publishLabel, String prebuildCommand,
+			String jenkinsServerName, boolean rebuildOnUpdate,
+			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
+			String artifactsPath, Integer maxVerifyChain,
+			EmailSettings emailSettings, boolean strictVerifyMode,
+			Boolean preserveJenkinsJobConfig) throws SQLException,
+			IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -324,9 +420,9 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 + repo.getId().toString());
             RepositoryConfiguration rc = ao.create(
                 RepositoryConfiguration.class,
-                new DBParam("REPO_ID", repo.getId()), new DBParam(
-                    "CI_ENABLED", isCiEnabled), new DBParam(
-                    "VERIFY_BRANCH_REGEX", verifyBranchRegex),
+					new DBParam("REPO_ID", repo.getId()),
+					new DBParam("CI_ENABLED", isCiEnabled),
+					new DBParam("VERIFY_BRANCH_REGEX", verifyBranchRegex),
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
                 new DBParam("VERIFY_PINNED", isVerifyPinned),
                 new DBParam("VERIFY_LABEL", verifyLabel),
@@ -341,14 +437,19 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 new DBParam("ARTIFACTS_ENABLED", artifactsEnabled),
                 new DBParam("ARTIFACTS_PATH", artifactsPath),
                 new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
-                new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
-                new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
-                new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
-                new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
-                new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
-                new DBParam("STRICT_VERIFY_MODE", strictVerifyMode),
-                new DBParam("PRESERVE_JENKINS_JOB_CONFIG", preserveJenkinsJobConfig)
-                );
+					new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings
+							.getEmailNotificationsEnabled()),
+							new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings
+									.getEmailForEveryUnstableBuild()),
+									new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings
+											.getEmailPerModuleEmail()),
+											new DBParam("EMAIL_RECIPIENTS", emailSettings
+													.getEmailRecipients()),
+													new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings
+															.getEmailSendToIndividuals()), new DBParam(
+																	"STRICT_VERIFY_MODE", strictVerifyMode),
+																	new DBParam("PRESERVE_JENKINS_JOB_CONFIG",
+																			preserveJenkinsJobConfig));
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
@@ -379,18 +480,25 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         if (maxVerifyChain != null) {
             foundRepo.setMaxVerifyChain(maxVerifyChain);
         }
-        foundRepo.setEmailNotificationsEnabled(emailSettings.getEmailNotificationsEnabled());
-        foundRepo.setEmailForEveryUnstableBuild(emailSettings.getEmailForEveryUnstableBuild());
-        foundRepo.setEmailPerModuleEmail(emailSettings.getEmailPerModuleEmail());
+		foundRepo.setEmailNotificationsEnabled(emailSettings
+				.getEmailNotificationsEnabled());
+		foundRepo.setEmailForEveryUnstableBuild(emailSettings
+				.getEmailForEveryUnstableBuild());
+		foundRepo
+		.setEmailPerModuleEmail(emailSettings.getEmailPerModuleEmail());
         foundRepo.setEmailRecipients(emailSettings.getEmailRecipients());
-        foundRepo.setEmailSendToIndividuals(emailSettings.getEmailSendToIndividuals());
+		foundRepo.setEmailSendToIndividuals(emailSettings
+				.getEmailSendToIndividuals());
         foundRepo.setStrictVerifyMode(strictVerifyMode);
         foundRepo.setPreserveJenkinsJobConfig(preserveJenkinsJobConfig);
         foundRepo.save();
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getAllJenkinsServerConfigurations()
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getAllJenkinsServerConfigurations()
      */
     @Override
     public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -403,8 +511,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         return ImmutableList.copyOf(allConfigs);
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getAllJenkinsServerNames()
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getAllJenkinsServerNames()
      */
     @Override
     public ImmutableCollection<String> getAllJenkinsServerNames()
@@ -424,8 +535,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#validateName(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * validateName(java.lang.String)
      */
     @Override
     public void validateName(String name) throws IllegalArgumentException {
@@ -434,8 +548,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#validateNameExists(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * validateNameExists(java.lang.String)
      */
     @Override
     public void validateNameExists(String name) throws IllegalArgumentException {
@@ -459,36 +576,44 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             + pr.getToRef().getLatestChangeset() + "]";
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(com.atlassian.stash.pull.PullRequest)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getPullRequestMetadata(com.atlassian.stash.pull.PullRequest)
      */
     @Override
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
-        return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
-            pr.getFromRef().getLatestChangeset().toString(),
-            pr.getToRef().getLatestChangeset().toString());
+		return getPullRequestMetadata(pr.getToRef().getRepository().getId(),
+				pr.getId(), pr.getFromRef().getLatestChangeset().toString(), pr
+				.getToRef().getLatestChangeset().toString());
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(int, java.lang.Long, java.lang.String, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getPullRequestMetadata(int, java.lang.Long, java.lang.String,
+	 * java.lang.String)
      */
     @Override
-    public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
-        // We have to check repoId being equal to -1 so that this works with old data.
-        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
-            toSha, fromSha);
+	public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId,
+			String fromSha, String toSha) {
+		// We have to check repoId being equal to -1 so that this works with old
+		// data.
+		PullRequestMetadata[] prms = ao
+				.find(PullRequestMetadata.class,
+						"(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?",
+						repoId, prId, toSha, fromSha);
         if (prms.length == 0) {
             // new/updated PR, create a new object
             log.info("Creating PR Metadata for pull request: repo id:" + repoId
-                + "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: " + toSha);
-            PullRequestMetadata prm =
-                ao.create(
-                    PullRequestMetadata.class,
-                    new DBParam("REPO_ID", repoId),
-                    new DBParam("PULL_REQUEST_ID", prId),
-                    new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha));
+					+ "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: "
+					+ toSha);
+			PullRequestMetadata prm = ao.create(PullRequestMetadata.class,
+					new DBParam("REPO_ID", repoId), new DBParam(
+							"PULL_REQUEST_ID", prId), new DBParam("TO_SHA",
+									toSha), new DBParam("FROM_SHA", fromSha));
             prm.save();
             return prm;
 
@@ -496,11 +621,15 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         return prms[0];
     }
 
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadataWithoutToRef(com.atlassian.stash.pull.PullRequest)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * getPullRequestMetadataWithoutToRef(com.atlassian.stash.pull.PullRequest)
      */
     @Override
-    public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
+	public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(
+			PullRequest pr) {
         Long id = pr.getId();
         String fromSha = pr.getFromRef().getLatestChangeset().toString();
         String toSha = pr.getToRef().getLatestChangeset().toString();
@@ -511,12 +640,9 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             // new/updated PR, create a new object
             log.info("Creating PR Metadata for pull request: "
                 + pullRequestToString(pr));
-            PullRequestMetadata prm =
-                ao.create(
-                    PullRequestMetadata.class,
-                    new DBParam("PULL_REQUEST_ID", id),
-                    new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha));
+			PullRequestMetadata prm = ao.create(PullRequestMetadata.class,
+					new DBParam("PULL_REQUEST_ID", id), new DBParam("TO_SHA",
+							toSha), new DBParam("FROM_SHA", fromSha));
             prm.save();
             return ImmutableList.of(prm);
 
@@ -525,35 +651,55 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     // Automatically sets the fromHash and toHash from the PullRequest object
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setPullRequestMetadata(com.atlassian.stash.pull.PullRequest,
+	 * java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
-        setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
-            pr.getToRef().getLatestChangeset(), buildStarted, success, override);
+		setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(), pr
+				.getToRef().getLatestChangeset(), buildStarted, success,
+				override);
     }
 
-    // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+	// Allows fromHash and toHash to be set by the caller, in case we are
+	// referring to older commits
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setPullRequestMetadata(com.atlassian.stash.pull.PullRequest,
+	 * java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean,
+	 * java.lang.Boolean)
      */
     @Override
-    public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
-        Boolean success, Boolean override) {
-        setPullRequestMetadata(pr, fromHash, toHash, buildStarted, success, override, null);
+	public void setPullRequestMetadata(PullRequest pr, String fromHash,
+			String toHash, Boolean buildStarted, Boolean success,
+			Boolean override) {
+		setPullRequestMetadata(pr, fromHash, toHash, buildStarted, success,
+				override, null);
     }
 
-    // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
-    /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+	// Allows fromHash and toHash to be set by the caller, in case we are
+	// referring to older commits
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#
+	 * setPullRequestMetadata(com.atlassian.stash.pull.PullRequest,
+	 * java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean,
+	 * java.lang.Boolean, java.lang.Boolean)
      */
     @Override
-    public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
-        Boolean success, Boolean override, Boolean failed) {
-        PullRequestMetadata prm =
-            getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash, toHash);
+	public void setPullRequestMetadata(PullRequest pr, String fromHash,
+			String toHash, Boolean buildStarted, Boolean success,
+			Boolean override, Boolean failed) {
+		PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef()
+				.getRepository().getId(), pr.getId(), fromHash, toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }
