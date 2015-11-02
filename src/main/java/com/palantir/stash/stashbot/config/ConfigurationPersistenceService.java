@@ -51,7 +51,7 @@ public interface ConfigurationPersistenceService {
 
     public abstract void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
+        String stashPassword, Integer maxVerifyChain, String prefixTemplate, Boolean isLocked)
         throws SQLException;
 
     public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(

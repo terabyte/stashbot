@@ -325,7 +325,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         JenkinsServerConfiguration jsc = configurationPersistanceManager
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
         String key = jt.getBuildNameFor(repo);
-        String url = jsc.getUrl() + "/job/" + key + "/"
+        String url = jsc.getUrlForRepo(repo) + "/job/" + key + "/"
             + Long.toString(buildNumber);
         return url;
     }

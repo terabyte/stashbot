@@ -16,6 +16,7 @@ package com.palantir.stash.stashbot.managers;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import com.atlassian.stash.repository.Repository;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
@@ -30,8 +31,8 @@ import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
  */
 public class JenkinsClientManager {
 
-    public JenkinsServer getJenkinsServer(JenkinsServerConfiguration jsc, RepositoryConfiguration rc)
+    public JenkinsServer getJenkinsServer(JenkinsServerConfiguration jsc, RepositoryConfiguration rc, Repository r)
         throws URISyntaxException {
-        return new JenkinsServer(new URI(jsc.getUrl()), jsc.getUsername(), jsc.getPassword());
+        return new JenkinsServer(new URI(jsc.getUrlForRepo(r)), jsc.getUsername(), jsc.getPassword());
     }
 }

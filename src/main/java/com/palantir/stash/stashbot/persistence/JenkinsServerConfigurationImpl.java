@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.persistence;
 
+import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 
 public class JenkinsServerConfigurationImpl {
@@ -30,4 +31,18 @@ public class JenkinsServerConfigurationImpl {
     public void setAuthenticationMode(AuthenticationMode authMode) {
         jsc.setAuthenticationModeStr(authMode.getMode());
     }
+
+    public String getUrlForRepo(Repository r) {
+        if (!jsc.getPrefixTemplate().equals("")) {
+            String template = jsc.getPrefixTemplate();
+            template = template.replaceAll("\\$project", r.getProject()
+                    .getKey());
+            template = template.replaceAll("\\$repo", r.getSlug());
+
+            return jsc.getUrl() + template;
+        } else {
+            return jsc.getUrl();
+        }
+    }
+
 }
