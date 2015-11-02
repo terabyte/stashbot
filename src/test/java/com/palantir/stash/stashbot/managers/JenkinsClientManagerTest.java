@@ -23,6 +23,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.util.Assert;
 
 import com.offbytwo.jenkins.JenkinsServer;
+import com.atlassian.stash.project.Project;
+import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.managers.JenkinsClientManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
@@ -32,10 +34,16 @@ public class JenkinsClientManagerTest {
     private static final String JENKINS_URL = "http://www.example.com:8080/jenkins";
     private static final String JENKINS_USERNAME = "jenkins_user";
     private static final String JENKINS_PW = "jenkins_pw";
+    private static final String PREFIX_TMPL = "";
+    private static final Integer REPO_ID = 5678;
     @Mock
     private RepositoryConfiguration rc;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private Project proj;
+    @Mock
+    private Repository repo;
 
     private JenkinsClientManager jcm;
 
@@ -47,12 +55,18 @@ public class JenkinsClientManagerTest {
         Mockito.when(jsc.getUrl()).thenReturn(JENKINS_URL);
         Mockito.when(jsc.getUsername()).thenReturn(JENKINS_USERNAME);
         Mockito.when(jsc.getPassword()).thenReturn(JENKINS_PW);
+        Mockito.when(jsc.getUrlForRepo(repo)).thenReturn(JENKINS_URL + PREFIX_TMPL);
+        Mockito.when(repo.getId()).thenReturn(REPO_ID);
+        Mockito.when(repo.getSlug()).thenReturn("slug");
+        Mockito.when(repo.getProject()).thenReturn(proj);
+        Mockito.when(repo.getName()).thenReturn("repoName");
+        Mockito.when(proj.getKey()).thenReturn("projectKey");
         jcm = new JenkinsClientManager();
     }
 
     @Test
     public void testJCM() throws URISyntaxException {
-        JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+        JenkinsServer js = jcm.getJenkinsServer(jsc, rc, repo);
         Assert.notNull(js);
     }
 }

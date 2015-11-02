@@ -106,9 +106,9 @@ public class JenkinsManager implements DisposableBean {
      * @param jsc
      * @param rc
      */
-    public String ensureCredentialExists(JenkinsServerConfiguration jsc, RepositoryConfiguration rc) {
+    public String ensureCredentialExists(JenkinsServerConfiguration jsc, RepositoryConfiguration rc, Repository repo) {
         try {
-            JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc, rc);
+            JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc, rc, repo);
 
             String id;
             {
@@ -180,13 +180,13 @@ public class JenkinsManager implements DisposableBean {
             final JenkinsServerConfiguration jsc = cpm
                 .getJenkinsServerConfiguration(rc.getJenkinsServerName());
             final JenkinsServer jenkinsServer = jenkinsClientManager
-                .getJenkinsServer(jsc, rc);
+                .getJenkinsServer(jsc, rc, repo);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
             // if the job is using credentials, we have to ensure they are deployed first
             switch (jsc.getAuthenticationMode()) {
             case CREDENTIAL_AUTOMATIC_SSH_KEY:
-                String id = ensureCredentialExists(jsc, rc);
+                String id = ensureCredentialExists(jsc, rc, repo);
                 if (!jsc.getCredentialId().equals(id)) {
                     jsc.setCredentialId(id);
                     jsc.save();
@@ -235,13 +235,13 @@ public class JenkinsManager implements DisposableBean {
             final JenkinsServerConfiguration jsc = cpm
                 .getJenkinsServerConfiguration(rc.getJenkinsServerName());
             final JenkinsServer jenkinsServer = jenkinsClientManager
-                .getJenkinsServer(jsc, rc);
+                .getJenkinsServer(jsc, rc, repo);
             final String jobName = jobTemplate.getBuildNameFor(repo);
 
             // if the job is using credentials, we have to ensure they are deployed first
             switch (jsc.getAuthenticationMode()) {
             case CREDENTIAL_AUTOMATIC_SSH_KEY:
-                String id = ensureCredentialExists(jsc, rc);
+                String id = ensureCredentialExists(jsc, rc, repo);
                 if (!jsc.getCredentialId().equals(id)) {
                     jsc.setCredentialId(id);
                     jsc.save();
@@ -350,7 +350,7 @@ public class JenkinsManager implements DisposableBean {
                 + " pw: " + password.replaceAll(".", "*") + ")");
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
-                rc);
+                rc, repo);
             Map<String, Job> jobMap = js.getJobs();
             String key = jt.getBuildNameFor(repo);
 
@@ -412,7 +412,7 @@ public class JenkinsManager implements DisposableBean {
                 + " pw: " + password.replaceAll(".", "*") + ")");
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
-                rc);
+                rc, repo);
             Map<String, Job> jobMap = js.getJobs();
             String key = jt.getBuildNameFor(repo);
 
@@ -496,7 +496,7 @@ public class JenkinsManager implements DisposableBean {
 
             // make sure jobs exist
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
-            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+            JenkinsServer js = jcm.getJenkinsServer(jsc, rc, r);
             Map<String, Job> jobs = js.getJobs();
 
             for (JobTemplate template : templates) {
@@ -578,7 +578,7 @@ public class JenkinsManager implements DisposableBean {
 
             // make sure jobs are up to date
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
-            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+            JenkinsServer js = jcm.getJenkinsServer(jsc, rc, r);
             Map<String, Job> jobs = js.getJobs();
             for (JobTemplate jobTemplate : templates) {
                 if (!jobs.containsKey(jobTemplate.getBuildNameFor(r))) {

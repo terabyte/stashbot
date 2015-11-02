@@ -98,6 +98,12 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             configs[0].setUrl(url);
             configs[0].save();
         }
+        String template = configs[0].getPrefixTemplate();
+        if (template.endsWith("/")) {
+            template = template.substring(0, template.length() - 1);
+            configs[0].setPrefixTemplate(template);
+            configs[0].save();
+        }
         return configs[0];
     }
 
@@ -116,11 +122,12 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String stashUsername = req.getParameter("stashUsername");
         String stashPassword = req.getParameter("stashPassword");
         Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
+        String prefixTemplate = req.getParameter("prefixTemplate");
         String lockStr = req.getParameter("locked");
         Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false : true;
 
         setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain,
-            isLocked);
+            prefixTemplate, isLocked);
     }
 
     /* (non-Javadoc)
@@ -132,7 +139,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
         throws SQLException {
         setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
-            stashUsername, stashPassword, maxVerifyChain, false);
+            stashUsername, stashPassword, maxVerifyChain, "", false);
     }
 
     /* (non-Javadoc)
@@ -141,7 +148,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
+        String stashPassword, Integer maxVerifyChain, String prefixTemplate, Boolean isLocked)
         throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -158,7 +165,9 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 username), new DBParam("PASSWORD", password), new DBParam(
                 "STASH_USERNAME", stashUsername), new DBParam(
                 "STASH_PASSWORD", stashPassword), new DBParam(
-                "MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam("LOCKED", isLocked));
+                "MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam(
+                "PREFIX_TEMPLATE", prefixTemplate), new DBParam(
+                "LOCKED", isLocked));
             return;
         }
         // already exists, so update it
@@ -170,6 +179,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         configs[0].setStashUsername(stashUsername);
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);
+        configs[0].setPrefixTemplate(prefixTemplate);
         configs[0].setLocked(isLocked);
         configs[0].save();
     }

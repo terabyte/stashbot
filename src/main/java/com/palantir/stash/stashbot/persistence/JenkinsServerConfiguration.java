@@ -19,10 +19,12 @@ import net.java.ao.Implementation;
 import net.java.ao.Mutator;
 import net.java.ao.Preload;
 import net.java.ao.schema.Default;
+import net.java.ao.schema.Ignore;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
+import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -176,6 +178,19 @@ public interface JenkinsServerConfiguration extends Entity {
     public Integer getMaxVerifyChain();
 
     public void setMaxVerifyChain(Integer max);
+
+    public String getPrefixTemplate();
+
+    public void setPrefixTemplate(String template);
+
+    // Implemented in JenkinsServerConfigurationImpl - expands variables in
+    // template and appends to url.
+    @Ignore
+    public String getUrlForRepo(Repository r);
+
+    @Ignore
+    @Deprecated
+    public void setUrlForRepo(String s);
 
     // For security - allow a jenkins server config to be locked to non-system-admins
     @NotNull

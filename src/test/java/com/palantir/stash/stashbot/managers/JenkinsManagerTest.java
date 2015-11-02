@@ -155,7 +155,8 @@ public class JenkinsManagerTest {
         Mockito.when(
             jenkinsClientManager.getJenkinsServer(
                 Mockito.any(JenkinsServerConfiguration.class),
-                Mockito.any(RepositoryConfiguration.class)))
+                Mockito.any(RepositoryConfiguration.class),
+                Mockito.any(Repository.class)))
             .thenReturn(jenkinsServer);
 
         jtf = new MockJobTemplateFactory(jtm);
@@ -332,7 +333,7 @@ public class JenkinsManagerTest {
         Mockito.when(jenkinsServer.runScript(GET_GROOVY_SCRIPT)).thenReturn("Result: not found");
         Mockito.when(jenkinsServer.runScript(CREATE_GROOVY_SCRIPT)).thenReturn("Result: " + ID);
 
-        jenkinsManager.ensureCredentialExists(jsc, rc);
+        jenkinsManager.ensureCredentialExists(jsc, rc, repo);
 
         // capture the uuid when it is rendered - then use it in the Answer() above
         Mockito.verify(velocityContext).put(Mockito.eq("id"), Mockito.anyString());
@@ -348,7 +349,7 @@ public class JenkinsManagerTest {
 
         Mockito.when(jenkinsServer.runScript(GET_GROOVY_SCRIPT)).thenReturn("Result: " + ID);
 
-        jenkinsManager.ensureCredentialExists(jsc, rc);
+        jenkinsManager.ensureCredentialExists(jsc, rc, repo);
 
         Mockito.verify(getTemplate).merge(Mockito.eq(velocityContext), Mockito.any(StringWriter.class));
         Mockito.verify(jenkinsServer).runScript(GET_GROOVY_SCRIPT);
