@@ -16,6 +16,7 @@ package com.palantir.stash.stashbot.jobtemplate;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,7 +86,14 @@ public class JenkinsJobXmlFormatter {
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
         RepositoryCloneLinksRequest rclr =
-            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").build();
+            //new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+        // XXX DEBUG
+        Set<NamedLink> a = rs.getCloneLinks(rclr);
+        Iterator<NamedLink> b = a.iterator();
+        NamedLink c = b.next();
+        String d = c.getHref();
+        // XXX DEBUG
         String repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
         String cleanRepositoryUrl = repositoryUrl;
 
