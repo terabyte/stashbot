@@ -59,15 +59,18 @@
         <url-pattern>/stashbot/build-trigger/*</url-pattern>
     </servlet>
 
-    <stash-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
+    <client-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
         <directory location="/static/">
           <exclude>/**/*-min.*</exclude>
         </directory>
         <context>plugin.page.stashbot</context>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web:server-soy-templates</dependency>
+        <!--
         <dependency>com.atlassian.bitbucket.bitbucket-web-plugin:global</dependency>
-    </stash-resource>
+        -->
+    </client-resource>
 
-    <web-item key="repository-configuration-admin" name="Stashbot Repository Admin Panel" weight="20" section="stash.repository.settings.panel">
+    <web-item key="repository-configuration-admin" name="Stashbot Repository Admin Panel" weight="20" section="bitbucket.repository.settings.panel">
         <conditions type="OR">
             <condition class="com.atlassian.bitbucket.web.conditions.HasRepositoryPermissionCondition">
                 <param name="permission">REPO_ADMIN</param>
