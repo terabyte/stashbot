@@ -415,7 +415,7 @@ public class JenkinsManager implements DisposableBean {
 
             Builder<String, String> builder = ImmutableMap.builder();
             builder.put("buildHead", hashToBuild);
-            builder.put("repoId", repo.getId().toString());
+            builder.put("repoId", String.valueOf(repo.getId()));
             if (buildRef != null) {
                 builder.put("buildRef", buildRef);
             }

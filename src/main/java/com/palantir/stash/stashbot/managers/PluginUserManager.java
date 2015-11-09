@@ -17,13 +17,11 @@ import javax.validation.ConstraintViolationException;
 
 import org.slf4j.Logger;
 
-import com.atlassian.bitbucket.exception.AuthorisationException;
+import com.atlassian.bitbucket.AuthorisationException;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.permission.PermissionAdminService;
+import com.atlassian.bitbucket.permission.SetPermissionRequest;
 import com.atlassian.bitbucket.repository.Repository;
-import com.atlassian.bitbucket.ssh.api.SshKey;
-import com.atlassian.bitbucket.ssh.api.SshKeyService;
-import com.atlassian.bitbucket.user.Permission;
-import com.atlassian.bitbucket.user.PermissionAdminService;
-import com.atlassian.bitbucket.user.SetPermissionRequest;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.user.UserAdminService;
 import com.atlassian.bitbucket.user.UserService;

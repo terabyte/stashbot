@@ -27,19 +27,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 
-import com.atlassian.soy.renderer.SoyException;
-import com.atlassian.soy.renderer.SoyTemplateRenderer;
-import com.atlassian.bitbucket.exception.AuthorisationException;
+import com.atlassian.bitbucket.AuthorisationException;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.permission.PermissionValidationService;
 import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.pull.PullRequestSearchRequest;
 import com.atlassian.bitbucket.pull.PullRequestService;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.repository.RepositoryService;
-import com.atlassian.bitbucket.user.Permission;
-import com.atlassian.bitbucket.user.PermissionValidationService;
 import com.atlassian.bitbucket.util.Page;
 import com.atlassian.bitbucket.util.PageRequest;
 import com.atlassian.bitbucket.util.PageRequestImpl;
+import com.atlassian.soy.renderer.SoyException;
+import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;

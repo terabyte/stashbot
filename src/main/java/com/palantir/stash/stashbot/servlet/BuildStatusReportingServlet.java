@@ -131,7 +131,7 @@ public class BuildStatusReportingServlet extends HttpServlet {
             if (pullRequest == null) {
                 throw new IllegalArgumentException(
                     "Unable to find pull request for repo id "
-                        + repo.getId().toString() + " pr id "
+                        + repo.getId() + " pr id "
                         + pullRequestId);
             }
 

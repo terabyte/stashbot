@@ -39,14 +39,14 @@ public class StashbotUrlBuilder {
         String buildHead, PullRequest pullRequest) throws SQLException {
         StringBuffer urlB = new StringBuffer(nb.buildAbsolute());
         urlB.append("/plugins/servlet/stashbot/build-trigger/");
-        urlB.append(repo.getId().toString()).append("/");
+        urlB.append(repo.getId()).append("/");
         urlB.append(jt.toString()).append("/");
         urlB.append(buildHead);
         if (pullRequest != null) {
             urlB.append("/");
-            urlB.append(pullRequest.getToRef().getLatestChangeset());
+            urlB.append(pullRequest.getToRef().getLatestCommit());
             urlB.append("/");
-            urlB.append(pullRequest.getId().toString());
+            urlB.append(pullRequest.getId());
         }
         return urlB.toString();
     }
@@ -92,8 +92,8 @@ public class StashbotUrlBuilder {
         return url;
     }
 
-    public String buildStashCommitUrl(Repository repo, String changeset) {
-        return nb.repo(repo).changeset(changeset).buildAbsolute();
+    public String buildStashCommitUrl(Repository repo, String commit) {
+        return nb.repo(repo).commit(commit).buildAbsolute();
     }
 
     private String mask(String str) {

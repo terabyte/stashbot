@@ -30,11 +30,11 @@ import com.atlassian.bitbucket.build.BuildStatus;
 import com.atlassian.bitbucket.build.BuildStatus.State;
 import com.atlassian.bitbucket.build.BuildStatusService;
 import com.atlassian.bitbucket.internal.build.InternalBuildStatus;
+import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.pull.PullRequestService;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.repository.RepositoryService;
-import com.atlassian.bitbucket.user.Permission;
 import com.atlassian.bitbucket.user.SecurityService;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.user.UserService;
@@ -187,7 +187,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                     if (pullRequest == null) {
                         throw new IllegalArgumentException(
                             "Unable to find pull request for repo id "
-                                + repo.getId().toString() + " pr id "
+                                + repo.getId() + " pr id "
                                 + Long.toString(pullRequestId));
                     }
                 } catch (NumberFormatException e) {
