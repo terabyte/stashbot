@@ -33,7 +33,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.atlassian.bitbucket.build.BuildState;
-import com.atlassian.bitbucket.build.BuildStatus;
 import com.atlassian.bitbucket.build.BuildStatusService;
 import com.atlassian.bitbucket.build.BuildStatusSetRequest;
 import com.atlassian.bitbucket.permission.Permission;
@@ -54,6 +53,7 @@ import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.servlet.BuildSuccessReportingServlet;
@@ -144,7 +144,8 @@ public class BuildSuccessReportingServletTest {
                 Mockito.any(JobType.class), Mockito.anyString(),
                 Mockito.any(PullRequest.class))).thenReturn(
             ABSOLUTE_URL);
-
+        Mockito.when(ub.getJenkinsBuildUrl(Mockito.any(Repository.class), Mockito.any(JobTemplate.class), Mockito.anyLong())).thenReturn(ABSOLUTE_URL);
+        
         Mockito.when(ss.impersonating(Mockito.any(ApplicationUser.class), Mockito.anyString())).thenReturn(esc);
         Mockito.when(ss.withPermission(Mockito.any(Permission.class), Mockito.anyString())).thenReturn(esc);
 

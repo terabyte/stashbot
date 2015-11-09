@@ -319,7 +319,7 @@ public class RepoConfigurationServletTest {
         when(jsc.getLocked()).thenReturn(true);
         when(jsc2.getLocked()).thenReturn(false);
         Exception permissionException =
-            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+            new AuthorisationException(new KeyedMessage("permission exceptionz", "", ""));
         Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default2");
@@ -336,7 +336,7 @@ public class RepoConfigurationServletTest {
         when(jsc.getLocked()).thenReturn(false);
         when(jsc2.getLocked()).thenReturn(true);
         Exception permissionException =
-            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+            new AuthorisationException(new KeyedMessage("permission exceptionz", "", ""));
         Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default2");
