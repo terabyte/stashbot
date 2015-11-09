@@ -92,11 +92,15 @@
             <version>4.10</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- this is provided by stash, but we do have a direct dependency on
+             it, FYI.  Stash provides version 3.4 as of bitbucket 4.1.0 -->
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
         </dependency>
+
         <!-- Dependencies specific to stashbot -->
         <dependency>
             <groupId>com.google.guava</groupId>
