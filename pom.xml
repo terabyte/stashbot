@@ -228,7 +228,7 @@
             <plugin>
                 <groupId>com.atlassian.maven.plugins</groupId>
                 <artifactId>bitbucket-maven-plugin</artifactId>
-                <version>${amps.version}</version>
+                <version>6.1.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <products>
@@ -239,7 +239,9 @@
                             <dataVersion>${bitbucket.data.version}</dataVersion>
                             <containerId>${bitbucket.containerId}</containerId>
                             <log4jProperties>${basedir}/log4j.properties</log4jProperties>
+                            <!-- XXX This is currently broken, fix it!
                             <productDataPath>${basedir}/home-data/generated-test-resources.zip</productDataPath>
+                            -->
                         </product>
                     </products>
                 </configuration>
@@ -275,7 +277,6 @@
         pom has the same name but isn't imported for some reason.
          -->
         <google.guava.libversion>18.0</google.guava.libversion>
-        <amps.version>6.1.0</amps.version>
         <plugin.testrunner.version>1.1</plugin.testrunner.version>
         <!-- TODO: I manually figured out this version - can we automatically figure it out?
              This is the version used by bitbucket 4.1.0-->
