@@ -20,8 +20,8 @@ import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 
-import com.atlassian.bitbucket.build.BuildStats;
 import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.build.BuildSummary;
 import com.atlassian.bitbucket.commit.Commit;
 import com.atlassian.bitbucket.commit.CommitService;
 import com.atlassian.bitbucket.commit.CommitsBetweenRequest;
@@ -119,7 +119,7 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             while (true) {
                 for (Commit c : page.getValues()) {
                     log.trace("Processing commit " + c.getId());
-                    BuildStats bs = bss.getStats(c.getId());
+                    BuildSummary bs = bss.getSummary(c.getId());
                     if (bs.getSuccessfulCount() == 0) {
                         mr.veto("Commit " + c.getId() + " not verified",
                             "When in strict verification mode, each commit in the PR must have at least one successful build");

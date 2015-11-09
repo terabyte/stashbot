@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.urlbuilder;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,8 +33,10 @@ import com.atlassian.bitbucket.repository.RepositoryCloneLinksRequest;
 import com.atlassian.bitbucket.repository.RepositoryService;
 import com.atlassian.bitbucket.util.NamedLink;
 import com.atlassian.bitbucket.util.SimpleNamedLink;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 
 public class StashbotUrlBuilderTest {
@@ -46,6 +49,8 @@ public class StashbotUrlBuilderTest {
     private static final Integer REPO_ID = 5678;
 
     @Mock
+    private ConfigurationPersistenceService cps;
+    @Mock
     private NavBuilder nb;
     @Mock
     private RepositoryService rs;
@@ -54,6 +59,8 @@ public class StashbotUrlBuilderTest {
     private Repository repo;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private RepositoryConfiguration rc;
     @Mock
     private PullRequest pr;
     @Mock
@@ -65,11 +72,14 @@ public class StashbotUrlBuilderTest {
     private Set<NamedLink> links;
 
     @Before
-    public void setUp() {
+    public void setUp() throws SQLException {
         MockitoAnnotations.initMocks(this);
         links = new HashSet<NamedLink>();
         links.add(new SimpleNamedLink(ABS_URL, "http"));
 
+        Mockito.when(cps.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
+        Mockito.when(cps.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
+        
         Mockito.when(nb.buildAbsolute()).thenReturn(ABS_URL);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
         Mockito.when(jsc.getStashPassword()).thenReturn("somepw");
@@ -82,7 +92,7 @@ public class StashbotUrlBuilderTest {
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
         Mockito.when(rs.getCloneLinks(Mockito.any(RepositoryCloneLinksRequest.class))).thenReturn(links);
 
-        sub = new StashbotUrlBuilder(nb, rs);
+        sub = new StashbotUrlBuilder(cps, nb, rs);
 
     }
 

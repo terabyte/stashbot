@@ -22,6 +22,8 @@ import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.permission.PermissionAdminService;
 import com.atlassian.bitbucket.permission.SetPermissionRequest;
 import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.ssh.SshKey;
+import com.atlassian.bitbucket.ssh.SshKeyService;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.user.UserAdminService;
 import com.atlassian.bitbucket.user.UserService;

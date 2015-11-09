@@ -24,9 +24,9 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.atlassian.bitbucket.permission.PermissionAdminService;
 import com.atlassian.bitbucket.repository.Repository;
-import com.atlassian.bitbucket.ssh.api.SshKeyService;
-import com.atlassian.bitbucket.user.PermissionAdminService;
+import com.atlassian.bitbucket.ssh.SshKeyService;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.user.UserAdminService;
 import com.atlassian.bitbucket.user.UserService;

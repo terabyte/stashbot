@@ -18,7 +18,6 @@ import java.util.Collection;
 
 import org.slf4j.Logger;
 
-import com.atlassian.event.api.EventListener;
 import com.atlassian.bitbucket.comment.Comment;
 import com.atlassian.bitbucket.event.pull.PullRequestCommentEvent;
 import com.atlassian.bitbucket.event.pull.PullRequestMergedEvent;
@@ -26,6 +25,7 @@ import com.atlassian.bitbucket.event.pull.PullRequestOpenedEvent;
 import com.atlassian.bitbucket.event.pull.PullRequestRescopedEvent;
 import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.event.api.EventListener;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;

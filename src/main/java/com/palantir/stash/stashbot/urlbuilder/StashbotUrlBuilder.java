@@ -22,15 +22,20 @@ import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.repository.RepositoryCloneLinksRequest;
 import com.atlassian.bitbucket.repository.RepositoryService;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class StashbotUrlBuilder {
 
+    private final ConfigurationPersistenceService cps;
     private final NavBuilder nb;
     private final RepositoryService rs;
 
-    public StashbotUrlBuilder(NavBuilder nb, RepositoryService rs) {
+    public StashbotUrlBuilder(ConfigurationPersistenceService cps, NavBuilder nb, RepositoryService rs) {
+    	this.cps = cps;
         this.nb = nb;
         this.rs = rs;
     }
@@ -102,5 +107,17 @@ public class StashbotUrlBuilder {
         } catch (UnsupportedEncodingException e) {
             return str;
         }
+    }
+    
+    public String getJenkinsJobUrl(Repository repo, JobTemplate jt) throws SQLException {
+        RepositoryConfiguration rc = cps.getRepositoryConfigurationForRepository(repo);
+        JenkinsServerConfiguration jsc = cps.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+        // XXX this is broken with folders, I think
+        String key = jt.getBuildNameFor(repo);
+        String url = jsc.getUrl() + "/job/" + key;
+        return url;
+    }
+    public String getJenkinsBuildUrl(Repository repo, JobTemplate jt, long buildNumber) throws SQLException {
+    	return getJenkinsJobUrl(repo, jt) + "/" + Long.toString(buildNumber);
     }
 }

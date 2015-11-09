@@ -4,9 +4,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.user.EscalatedSecurityContext;
 import com.atlassian.bitbucket.user.SecurityService;
-import com.atlassian.bitbucket.user.ApplicationUser;
 import com.atlassian.bitbucket.util.Operation;
 
 public class MockSecurityServiceBuilder {

@@ -30,10 +30,10 @@ import org.mockito.stubbing.Answer;
 
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.scm.CommandOutputHandler;
-import com.atlassian.bitbucket.scm.git.GitCommand;
-import com.atlassian.bitbucket.scm.git.GitCommandBuilderFactory;
-import com.atlassian.bitbucket.scm.git.GitScmCommandBuilder;
-import com.atlassian.bitbucket.scm.git.revlist.GitRevListBuilder;
+import com.atlassian.bitbucket.scm.git.command.GitCommand;
+import com.atlassian.bitbucket.scm.git.command.GitCommandBuilderFactory;
+import com.atlassian.bitbucket.scm.git.command.GitScmCommandBuilder;
+import com.atlassian.bitbucket.scm.git.command.revlist.GitRevListBuilder;
 
 public class MockGitCommandBuilderFactory {
 

@@ -22,8 +22,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.bitbucket.build.BuildStats;
 import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.build.BuildSummary;
 import com.atlassian.bitbucket.commit.Commit;
 import com.atlassian.bitbucket.commit.CommitService;
 import com.atlassian.bitbucket.commit.CommitsBetweenRequest;
@@ -84,9 +84,9 @@ public class PullRequestBuildSuccessMergeCheckTest {
     @Mock
     private Commit changeB;
     @Mock
-    private BuildStats bsA;
+    private BuildSummary bsA;
     @Mock
-    private BuildStats bsB;
+    private BuildSummary bsB;
 
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
     private List<Commit> changesets;
@@ -133,8 +133,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(mockPage.getIsLastPage()).thenReturn(true);
         Mockito.when(changeA.getId()).thenReturn(SHA_A);
         Mockito.when(changeB.getId()).thenReturn(SHA_B);
-        Mockito.when(bss.getStats(SHA_A)).thenReturn(bsA);
-        Mockito.when(bss.getStats(SHA_B)).thenReturn(bsB);
+        Mockito.when(bss.getSummary(SHA_A)).thenReturn(bsA);
+        Mockito.when(bss.getSummary(SHA_B)).thenReturn(bsB);
 
         Mockito.when(bsA.getSuccessfulCount()).thenReturn(1);
         Mockito.when(bsB.getSuccessfulCount()).thenReturn(1);

@@ -66,6 +66,16 @@
 
         <!-- additional dependencies -->
         <dependency>
+            <groupId>com.atlassian.bitbucket.server</groupId>
+            <artifactId>bitbucket-build-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.bitbucket.server</groupId>
+            <artifactId>bitbucket-ssh-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.atlassian.soy</groupId>
             <artifactId>soy-template-renderer-api</artifactId>
             <scope>provided</scope>
