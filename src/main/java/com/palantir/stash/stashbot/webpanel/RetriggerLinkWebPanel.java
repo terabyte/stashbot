@@ -22,8 +22,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 
 import com.atlassian.plugin.web.model.WebPanel;
-import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.content.Changeset;
+import com.atlassian.bitbucket.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;

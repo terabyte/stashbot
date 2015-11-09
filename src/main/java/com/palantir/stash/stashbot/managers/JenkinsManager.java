@@ -37,16 +37,16 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 
 import com.atlassian.sal.api.user.UserManager;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserService;
-import com.atlassian.stash.util.Operation;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
-import com.atlassian.stash.util.PageRequestImpl;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.UserService;
+import com.atlassian.bitbucket.util.Operation;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
+import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -339,7 +339,7 @@ public class JenkinsManager implements DisposableBean {
         final String hashToBuild, final String buildRef) {
 
         final String username = um.getRemoteUser().getUsername();
-        final StashUser su = us.findUserByNameOrEmail(username);
+        final ApplicationUser su = us.findUserByNameOrEmail(username);
 
         es.submit(new Callable<Void>() {
 
@@ -364,7 +364,7 @@ public class JenkinsManager implements DisposableBean {
         final PullRequest pr) {
 
         final String username = um.getRemoteUser().getUsername();
-        final StashUser su = us.findUserByNameOrEmail(username);
+        final ApplicationUser su = us.findUserByNameOrEmail(username);
 
         es.submit(new Callable<Void>() {
 

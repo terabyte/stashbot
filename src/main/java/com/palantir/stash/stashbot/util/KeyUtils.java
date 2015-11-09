@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 /**
- * This class implements some helper functions since com.atlassian.stash.ssh.utils.KeyUtils is not available to
+ * This class implements some helper functions since com.atlassian.bitbucket.ssh.utils.KeyUtils is not available to
  * plugins.
  * 
  * @author cmyers

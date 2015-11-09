@@ -26,18 +26,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 
-import com.atlassian.stash.build.BuildStatus;
-import com.atlassian.stash.build.BuildStatus.State;
-import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.internal.build.InternalBuildStatus;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserService;
+import com.atlassian.bitbucket.build.BuildStatus;
+import com.atlassian.bitbucket.build.BuildStatus.State;
+import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.internal.build.InternalBuildStatus;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.user.Permission;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.UserService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
@@ -280,7 +280,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // So in order to create comments, we have to do it AS some user.  ss.doAsUser rather than ss.doWithPermission is the magic sauce here.
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-            StashUser user = us.findUserByNameOrEmail(jsc.getStashUsername());
+            ApplicationUser user = us.findUserByNameOrEmail(jsc.getStashUsername());
             ss.impersonating(user, "BUILD SUCCESS REPORT").call(prcao);
 
             printOutput(req, res);
