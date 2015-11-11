@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.atlassian.stash.build.BuildStatus;
@@ -324,9 +325,23 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             .getRepositoryConfigurationForRepository(repo);
         JenkinsServerConfiguration jsc = configurationPersistanceManager
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
-        String key = jt.getBuildNameFor(repo);
-        String url = jsc.getUrl() + "/job/" + key + "/"
-            + Long.toString(buildNumber);
+        String baseUrl = jsc.getUrl();
+        String prefix = "";
+        if (jsc.getFolderSupportEnabled()) {
+            prefix = jsc.getFolderPrefix();
+        }
+        if (jsc.getUseSubFolders()) {
+            if (!prefix.isEmpty()) {
+                prefix = prefix + "/" + jt.getPathFor(repo);
+            } else {
+                prefix = jt.getPathFor(repo);
+            }
+        }
+        String url = baseUrl;
+        if (!prefix.isEmpty()) {
+            url = url + "/job/" + StringUtils.join(prefix.split("/"), "/job.");
+        }
+        url = url + "/job/" + jt.getBuildNameFor(repo) + "/" + String.valueOf(buildNumber);
         return url;
     }
 
