@@ -339,7 +339,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         }
         String url = baseUrl;
         if (!prefix.isEmpty()) {
-            url = url + "/job/" + StringUtils.join(prefix.split("/"), "/job.");
+            url = url + StringUtils.join(prefix.split("/"), "/job/");
         }
         url = url + "/job/" + jt.getBuildNameFor(repo) + "/" + String.valueOf(buildNumber);
         return url;
