@@ -94,11 +94,13 @@
     <web-section key="build-action-section"  name="Section for displaying build actions" weight="250" location="stash.commits.extras">
         <label key="build-action-section-label">Build Actions</label>
         <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
+        <dependency>stash.web.resources:jquery</dependency>
     </web-section>
 
     <web-panel key="build-retrigger-panel"  name="Panel to display per-commit retrigger links" location="build-action-section" class="com.palantir.stash.stashbot.webpanel.RetriggerLinkWebPanel">
         <label key="build-retrigger-panel-label">Re-verify</label>
         <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
+        <dependency>stash.web.resources:jquery</dependency>
     </web-panel>
 
     <!-- tried to write this as a client-web-panel, but that was annoying as crap, so this janky solution was easier.  Forgive me. -->

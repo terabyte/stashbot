@@ -73,11 +73,33 @@ public class RetriggerLinkWebPanel implements WebPanel {
                 changeset.getId(), null);
             String pubUrl = ub.getJenkinsTriggerUrl(repo, JobType.PUBLISH,
                 changeset.getId(), null);
+            String changeId = changeset.getId();
             // boy it would be nice if there were a way to do this from context.
             // aslso would be nice to inject this script once at the top somehow
-            writer.append("Trigger: ( ");
-            writer.append("<a onclick=\"location.href=this.href+'?reason=refs/heads/'+document.getElementById('repository-layout-revision-selector').title;return false;\" id=\"stashbotVerifyLink\" href=\"" + url + "\">Verify</a> | ");
-            writer.append("<a onclick=\"location.href=this.href+'?reason=refs/heads/'+document.getElementById('repository-layout-revision-selector').title;return false;\" id=\"stashbotPublishLink\" href=\"" + pubUrl + "\">Publish</a> )");
+            writer.append("<form id='sbVer" + changeId + "' method='POST' action='" + url + "'><input type='submit' value='Verify' /></form>");
+            writer.append("<form id='sbPub" + changeId + "' method='POST' action='" + pubUrl + "'><input type='submit' value='Publish' /></form>");
+            writer.append("<script>\n");
+            writer.append("$('sbVer" + changeId + "').submit(function(event) {\n");
+            writer.append("  var formData = { 'reason': document.getElementById('repository-layout-revision-selector').title };\n");
+            writer.append("  $.ajax({\n");
+            writer.append("    type : 'POST',\n");
+            writer.append("    url  : '" + url + "',\n");
+            writer.append("    data : formData,\n");
+            writer.append("  }).done(function(data) { console.log(data); });\n");
+            writer.append("  event.preventDefault();");
+            writer.append("});\n");
+            writer.append("$('sbPub" + changeId + "').submit(function(event) {\n");
+            writer.append("  var formData = { 'reason': document.getElementById('repository-layout-revision-selector').title };\n");
+            writer.append("  $.ajax({\n");
+            writer.append("    type : 'POST',\n");
+            writer.append("    url  : '" + pubUrl + "',\n");
+            writer.append("    data : formData,\n");
+            writer.append("  }).done(function(data) { console.log(data); });\n");
+            writer.append("  event.preventDefault();");
+            writer.append("});\n");
+            writer.append("</script>\n");
+
+            writer.append(" )");
         } catch (SQLException e) {
             throw new IOException(e);
         }
