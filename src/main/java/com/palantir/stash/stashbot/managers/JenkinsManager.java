@@ -47,6 +47,7 @@ import com.atlassian.bitbucket.util.Page;
 import com.atlassian.bitbucket.util.PageRequest;
 import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.sal.api.user.UserProfile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -363,8 +364,19 @@ public class JenkinsManager implements DisposableBean {
     public void triggerBuild(final Repository repo, final JobType jobType,
         final PullRequest pr) {
 
-        final String username = um.getRemoteUser().getUsername();
-        final ApplicationUser su = us.findUserByNameOrEmail(username);
+        ApplicationUser su;
+        String username;
+
+        final UserProfile up = um.getRemoteUser();
+        if (up == null) {
+            // getRemoteUser() appears to return null in this context
+            // when pushing new refs via ssh on at least BBS >= 4.8.3
+            su = pr.getAuthor().getUser();
+            username = su.getSlug();
+        } else {
+            username = up.getUsername();
+            su = us.findUserByNameOrEmail(username);
+        }
 
         es.submit(new Callable<Void>() {
 

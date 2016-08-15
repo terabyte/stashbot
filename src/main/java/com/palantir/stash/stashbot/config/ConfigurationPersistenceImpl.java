@@ -524,7 +524,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             toSha, fromSha);
         if (prms.length == 0) {
             // new/updated PR, create a new object
-            log.info("Creating PR Metadata for pull request: repo id:" + repoId
+            log.info("Creating PR Metadata for pull request: repo id: " + repoId
                 + "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: " + toSha);
             PullRequestMetadata prm =
                 ao.create(
@@ -548,9 +548,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         Long id = pr.getId();
         String fromSha = pr.getFromRef().getLatestCommit().toString();
         String toSha = pr.getToRef().getLatestCommit().toString();
+        Repository repo = pr.getToRef().getRepository();
 
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "PULL_REQUEST_ID = ? and FROM_SHA = ?", id, fromSha);
+            "REPO_ID = ? and PULL_REQUEST_ID = ? and FROM_SHA = ?", repo.getId(), id, fromSha);
         if (prms.length == 0) {
             // new/updated PR, create a new object
             log.info("Creating PR Metadata for pull request: "
@@ -558,9 +559,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             PullRequestMetadata prm =
                 ao.create(
                     PullRequestMetadata.class,
+                    new DBParam("REPO_ID", repo.getId()),
                     new DBParam("PULL_REQUEST_ID", id),
                     new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha));
+                    new DBParam("FROM_SHA", fromSha)
+                );
             prm.save();
             return ImmutableList.of(prm);
 
