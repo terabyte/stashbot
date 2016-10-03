@@ -43,6 +43,7 @@ import com.atlassian.event.api.EventPublisher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildTimeoutSettings;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.SlackSettings;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
@@ -186,7 +187,8 @@ public class ConfigurationTest {
             false, "N/A", "publishBranchRegex",
             "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, false, "N/A", false, "N/A",
             size, new EmailSettings(true, "a@a.a", true, true, true), false, false,
-            false, false, new BuildTimeoutSettings(false, 0));
+            false, false, new BuildTimeoutSettings(false, 0),
+            new SlackSettings(false, "teamdomain", "authtoken", "buildserverurl", "room", "NONE", "OH HAI", false, false, false, false, false, false, false, false, false, false));
 
         RepositoryConfiguration rc = cpm
             .getRepositoryConfigurationForRepository(repo);
@@ -216,7 +218,8 @@ public class ConfigurationTest {
                 false, "N/A",
                 "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, false,
                 "N/A", false, "N/A", null, new EmailSettings(), false, false,
-                false, false, new BuildTimeoutSettings(false, 0));
+                false, false, new BuildTimeoutSettings(false, 0),
+                new SlackSettings(false, "teamdomain", "authtoken", "buildserverurl", "room", "NONE", "OH HAI", false, false, false, false, false, false, false, false, false, false));
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success

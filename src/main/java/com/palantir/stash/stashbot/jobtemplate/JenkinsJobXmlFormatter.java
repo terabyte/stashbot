@@ -149,6 +149,27 @@ public class JenkinsJobXmlFormatter {
         vc.put("isBuildTimeoutEnabled", rc.getBuildTimeoutEnabled());
         vc.put("buildTimeout", rc.getBuildTimeout());
 
+        // Configure Slack
+        vc.put("slackEnabled", rc.getSlackEnabled());
+        // strings
+        vc.put("slackTeamDomain", rc.getSlackTeamDomain());
+        vc.put("slackAuthToken", rc.getSlackAuthToken());
+        vc.put("slackBuildServerUrl", rc.getSlackBuildServerUrl());
+        vc.put("slackRoom", rc.getSlackRoom());
+        vc.put("slackCommitInfoChoice", rc.getSlackCommitInfoChoice());
+        vc.put("slackCustomMessage", rc.getSlackCustomMessage());
+        // bools
+        vc.put("slackStartNotification", rc.getSlackStartNotification());
+        vc.put("slackNotifySuccess", rc.getSlackNotifySuccess());
+        vc.put("slackNotifyAborted", rc.getSlackNotifyAborted());
+        vc.put("slackNotifyNotBuilt", rc.getSlackNotifyNotBuilt());
+        vc.put("slackNotifyUnstable", rc.getSlackNotifyUnstable());
+        vc.put("slackNotifyFailure", rc.getSlackNotifyFailure());
+        vc.put("slackNotifyBackToNormal", rc.getSlackNotifyBackToNormal());
+        vc.put("slackNotifyRepeatedFailure", rc.getSlackNotifyRepeatedFailure());
+        vc.put("slackIncludeTestSummary", rc.getSlackIncludeTestSummary());
+        vc.put("slackIncludeCustomMessage", rc.getSlackIncludeCustomMessage());
+
         // Add email notification stuff for all build types
         vc.put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled());
         vc.put("emailRecipients", rc.getEmailRecipients());

@@ -18,6 +18,23 @@
   artifactsPath
   authVersion
   privKey
+  slackEnabled
+  slackTeamDomain
+  slackAuthToken
+  slackBuildServerUrl
+  slackRoom
+  slackCommitInfoChoice
+  slackCustomMessage
+  slackStartNotification
+  slackNotifySuccess
+  slackNotifyAborted
+  slackNotifyNotBuilt
+  slackNotifyUnstable
+  slackNotifyFailure
+  slackNotifyBackToNormal
+  slackNotifyRepeatedFailure
+  slackIncludeTestSummary
+  slackIncludeCustomMessage
 
   esc - escape tool - required
   @author cmyers
@@ -207,6 +224,38 @@
       <latestOnly>false</latestOnly>
       <allowEmptyArchive>true</allowEmptyArchive>
     </hudson.tasks.ArtifactArchiver>
+#end
+#if ( $slackEnabled )
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.0.1">
+      <teamDomain>$slackTeamDomain</teamDomain>
+#if ( $slackAuthToken == "default" )
+      <authToken></authToken>
+#else
+      <authToken>$slackAuthToken</authToken>
+#end
+#if ( $slackBuildServerUrl == "default" )
+      <buildServerUrl></buildServerUrl>
+#else
+      <buildServerUrl>$slackBuildServerUrl</buildServerUrl>
+#end
+      <room>$slackRoom</room>
+      <startNotification>$slackStartNotification</startNotification>
+      <notifySuccess>$slackNotifySuccess</notifySuccess>
+      <notifyAborted>$slackNotifyAborted</notifyAborted>
+      <notifyNotBuilt>$slackNotifyNotBuilt</notifyNotBuilt>
+      <notifyUnstable>$slackNotifyUnstable</notifyUnstable>
+      <notifyFailure>$slackNotifyFailure</notifyFailure>
+      <notifyBackToNormal>$slackNotifyBackToNormal</notifyBackToNormal>
+      <notifyRepeatedFailure>$slackNotifyRepeatedFailure</notifyRepeatedFailure>
+      <includeTestSummary>$slackIncludeTestSummary</includeTestSummary>
+      <commitInfoChoice>$slackCommitInfoChoice</commitInfoChoice>
+      <includeCustomMessage>$slackIncludeCustomMessage</includeCustomMessage>
+#if ( $slackIncludeCustomMessage )
+      <customMessage>$slackCustomMessage</customMessage>
+#else
+      <customMessage></customMessage>
+#end
+    </jenkins.plugins.slack.SlackNotifier>
 #end
   </publishers>
   <buildWrappers>

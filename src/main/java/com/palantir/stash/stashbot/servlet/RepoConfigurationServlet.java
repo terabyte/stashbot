@@ -41,6 +41,7 @@ import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -124,6 +125,37 @@ public class RepoConfigurationServlet extends HttpServlet {
                 jenkinsServersData.add(m);
             }
 
+            // not sure if there's a better place to put this?
+            //List<Map<String, String>> slackCommitInfoOptions = new ArrayList<Map<String, String>>();
+            ImmutableList.Builder<Map<String,String>> slackCommitInfoOptionsBuilder = ImmutableList.builder();
+
+            ImmutableMap.Builder<String, String> a = ImmutableMap.builder();
+            String slackCommitInfoChoice = rc.getSlackCommitInfoChoice();
+            a.put("text", "nothing about commits");
+            a.put("value", "NONE");
+            if (slackCommitInfoChoice == "NONE" || slackCommitInfoChoice == null) {
+              a.put("selected", "true");
+            }
+            slackCommitInfoOptionsBuilder.add(a.build());
+
+            ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+            b.put("text", "commit list with authors only");
+            b.put("value", "AUTHORS");
+            if (slackCommitInfoChoice == "AUTHORS") {
+              b.put("selected", "true");
+            }
+            slackCommitInfoOptionsBuilder.add(b.build());
+
+            ImmutableMap.Builder<String, String> c = ImmutableMap.builder();
+            c.put("text", "commit list with authors and titles");
+            c.put("value", "AUTHORS_AND_TITLES");
+            if (slackCommitInfoChoice == "AUTHORS_AND_TITLES") {
+              c.put("selected", "true");
+            }
+            slackCommitInfoOptionsBuilder.add(c.build());
+
+            ImmutableList<Map<String,String>> slackCommitInfoOptions = slackCommitInfoOptionsBuilder.build();
+
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             pageBuilderService.assembler().resources()
                 .requireWebResource("com.palantir.stash.stashbot:stashbot-resources");
@@ -162,6 +194,24 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
                         .put("isBuildTimeoutEnabled", rc.getBuildTimeoutEnabled())
                         .put("buildTimeout", rc.getBuildTimeout())
+                        .put("slackEnabled", rc.getSlackEnabled())
+                        .put("slackTeamDomain", rc.getSlackTeamDomain())
+                        .put("slackAuthToken", rc.getSlackAuthToken())
+                        .put("slackBuildServerUrl", rc.getSlackBuildServerUrl())
+                        .put("slackRoom", rc.getSlackRoom())
+                        .put("slackCommitInfoOptions", slackCommitInfoOptions)
+                        .put("slackCommitInfoChoice", slackCommitInfoChoice)
+                        .put("slackCustomMessage", rc.getSlackCustomMessage())
+                        .put("slackStartNotification", rc.getSlackStartNotification())
+                        .put("slackNotifySuccess", rc.getSlackNotifySuccess())
+                        .put("slackNotifyAborted", rc.getSlackNotifyAborted())
+                        .put("slackNotifyNotBuilt", rc.getSlackNotifyNotBuilt())
+                        .put("slackNotifyUnstable", rc.getSlackNotifyUnstable())
+                        .put("slackNotifyFailure", rc.getSlackNotifyFailure())
+                        .put("slackNotifyBackToNormal", rc.getSlackNotifyBackToNormal())
+                        .put("slackNotifyRepeatedFailure", rc.getSlackNotifyRepeatedFailure())
+                        .put("slackIncludeTestSummary", rc.getSlackIncludeTestSummary())
+                        .put("slackIncludeCustomMessage", rc.getSlackIncludeCustomMessage())
                         .put("isTimestampJobOutputEnabled", rc.getTimestampJobOutputEnabled())
                         .put("isAnsiColorJobOutputEnabled", rc.getAnsiColorJobOutputEnabled())
                         .put("isLocked", isLocked(theJsc))

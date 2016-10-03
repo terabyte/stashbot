@@ -150,6 +150,23 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getEmailForEveryUnstableBuild()).thenReturn(false);
         Mockito.when(rc.getEmailPerModuleEmail()).thenReturn(false);
         Mockito.when(rc.getEmailSendToIndividuals()).thenReturn(false);
+        Mockito.when(rc.getSlackEnabled()).thenReturn(false);
+        Mockito.when(rc.getSlackTeamDomain()).thenReturn("slackdomain");
+        Mockito.when(rc.getSlackAuthToken()).thenReturn("slackauthtoken");
+        Mockito.when(rc.getSlackBuildServerUrl()).thenReturn("http://build");
+        Mockito.when(rc.getSlackRoom()).thenReturn("slackroom");
+        Mockito.when(rc.getSlackCommitInfoChoice()).thenReturn("NONE");
+        Mockito.when(rc.getSlackCustomMessage()).thenReturn("OH HAI");
+        Mockito.when(rc.getSlackStartNotification()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifySuccess()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifyAborted()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifyNotBuilt()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifyUnstable()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifyFailure()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifyBackToNormal()).thenReturn(false);
+        Mockito.when(rc.getSlackNotifyRepeatedFailure()).thenReturn(false);
+        Mockito.when(rc.getSlackIncludeTestSummary()).thenReturn(false);
+        Mockito.when(rc.getSlackIncludeCustomMessage()).thenReturn(false);
 
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
@@ -171,6 +188,23 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc2.getEmailForEveryUnstableBuild()).thenReturn(true);
         Mockito.when(rc2.getEmailPerModuleEmail()).thenReturn(true);
         Mockito.when(rc2.getEmailSendToIndividuals()).thenReturn(true);
+        Mockito.when(rc2.getSlackEnabled()).thenReturn(false);
+        Mockito.when(rc2.getSlackTeamDomain()).thenReturn("slackdomain");
+        Mockito.when(rc2.getSlackAuthToken()).thenReturn("slackauthtoken");
+        Mockito.when(rc2.getSlackBuildServerUrl()).thenReturn("http://build");
+        Mockito.when(rc2.getSlackRoom()).thenReturn("slackroom");
+        Mockito.when(rc2.getSlackCommitInfoChoice()).thenReturn("NONE");
+        Mockito.when(rc2.getSlackCustomMessage()).thenReturn("OH HAI");
+        Mockito.when(rc2.getSlackStartNotification()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifySuccess()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifyAborted()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifyNotBuilt()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifyUnstable()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifyFailure()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifyBackToNormal()).thenReturn(false);
+        Mockito.when(rc2.getSlackNotifyRepeatedFailure()).thenReturn(false);
+        Mockito.when(rc2.getSlackIncludeTestSummary()).thenReturn(false);
+        Mockito.when(rc2.getSlackIncludeCustomMessage()).thenReturn(false);
 
         Mockito.when(jsc.getName()).thenReturn(JSN);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
