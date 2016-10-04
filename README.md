@@ -24,6 +24,7 @@ effect:
 2. [Build timeout plugin](https://wiki.jenkins-ci.org/display/JENKINS/Build-timeout+Plugin)
 3. [Timestamper plugin](https://wiki.jenkins-ci.org/display/JENKINS/Timestamper)
 4. [ANSI color plugin](https://wiki.jenkins-ci.org/display/JENKINS/AnsiColor+Plugin)
+5. [Slack plugin](https://wiki.jenkins-ci.org/display/JENKINS/Slack+Plugin) (required for slack notifications, version >= 2.0.1)
 
 # USER GUIDE
 
