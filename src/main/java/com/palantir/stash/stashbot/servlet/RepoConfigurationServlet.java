@@ -13,20 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.servlet;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-
 import com.atlassian.bitbucket.AuthorisationException;
 import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.permission.PermissionValidationService;
@@ -50,6 +36,14 @@ import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
@@ -114,15 +108,15 @@ public class RepoConfigurationServlet extends HttpServlet {
         res.setContentType("text/html;charset=UTF-8");
 
         try {
-            List<Map<String, String>> jenkinsServersData = new ArrayList<Map<String, String>>();
+            ImmutableList.Builder<Map<String, String>> jenkinsServersData = ImmutableList.builder();
             for (JenkinsServerConfiguration jsc : configurationPersistanceManager.getAllJenkinsServerConfigurations()) {
-                HashMap<String, String> m = new HashMap<String, String>();
+                ImmutableMap.Builder<String, String> m = ImmutableMap.builder();
                 m.put("text", jsc.getName());
                 m.put("value", jsc.getName());
                 if (rc.getJenkinsServerName().equals(jsc.getName())) {
                     m.put("selected", "true");
                 }
-                jenkinsServersData.add(m);
+                jenkinsServersData.add(m.build());
             }
 
             // not sure if there's a better place to put this?
@@ -184,7 +178,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("junitPath", rc.getJunitPath())
                         .put("artifactsEnabled", rc.getArtifactsEnabled())
                         .put("artifactsPath", rc.getArtifactsPath())
-                        .put("jenkinsServersData", jenkinsServersData)
+                        .put("jenkinsServersData", jenkinsServersData.build())
                         .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
                         .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
                         .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
