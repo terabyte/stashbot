@@ -212,7 +212,125 @@ public interface RepositoryConfiguration extends Entity {
     @NotNull
     @Default("false")
     public Boolean getPreserveJenkinsJobConfig();
-
     public void setPreserveJenkinsJobConfig(Boolean preserveJenkinsJobConfig);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_ENABLED")
+    public Boolean getSlackEnabled();
+    @Mutator("SLACK_ENABLED")
+    public void setSlackEnabled(Boolean slackEnabled);
+
+    @NotNull
+    @Default("climate")
+    @Accessor("SLACK_TEAM_DOMAIN")
+    public String getSlackTeamDomain();
+    @Mutator("SLACK_TEAM_DOMAIN")
+    public void setSlackTeamDomain(String slackTeamDomain);
+
+    @NotNull
+    @Default("default")
+    @Accessor("SLACK_AUTH_TOKEN")
+    public String getSlackAuthToken();
+    @Mutator("SLACK_AUTH_TOKEN")
+    public void setSlackAuthToken(String slackAuthToken);
+
+    @NotNull
+    @Default("default")
+    @Accessor("SLACK_BUILD_SERVER_URL")
+    public String getSlackBuildServerUrl();
+    @Mutator("SLACK_BUILD_SERVER_URL")
+    public void setSlackBuildServerUrl(String slackBuildServerUrl);
+
+    @NotNull
+    @Default("#jenkins-builds")
+    @Accessor("SLACK_ROOM")
+    public String getSlackRoom();
+    @Mutator("SLACK_ROOM")
+    public void setSlackRoom(String slackRoom);
+
+    @NotNull
+    @Default("NONE")
+    @Accessor("SLACK_COMMIT_INFO_CHOICE")
+    public String getSlackCommitInfoChoice();
+    @Mutator("SLACK_COMMIT_INFO_CHOICE")
+    public void setSlackCommitInfoChoice(String slackCommitInfoChoice);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_INCLUDE_CUSTOM_MESSAGE")
+    public Boolean getSlackIncludeCustomMessage();
+    @Mutator("SLACK_INCLUDE_CUSTOM_MESSAGE")
+    public void setSlackIncludeCustomMessage(Boolean slackIncludeCustomMessage);
+
+    @NotNull
+    @Default("OH HAI")
+    @Accessor("SLACK_CUSTOM_MESSAGE")
+    public String getSlackCustomMessage();
+    @Mutator("SLACK_CUSTOM_MESSAGE")
+    public void setSlackCustomMessage(String slackCustomMessage);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_START_NOTIFICATION")
+    public Boolean getSlackStartNotification();
+    @Mutator("SLACK_START_NOTIFICATION")
+    public void setSlackStartNotification(Boolean slackStartNotification);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_SUCCESS")
+    public Boolean getSlackNotifySuccess();
+    @Mutator("SLACK_NOTIFY_SUCCESS")
+    public void setSlackNotifySuccess(Boolean slackNotifySuccess);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_ABORTED")
+    public Boolean getSlackNotifyAborted();
+    @Mutator("SLACK_NOTIFY_ABORTED")
+    public void setSlackNotifyAborted(Boolean slackNotifyAborted);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_NOT_BUILT")
+    public Boolean getSlackNotifyNotBuilt();
+    @Mutator("SLACK_NOTIFY_NOT_BUILT")
+    public void setSlackNotifyNotBuilt(Boolean slackNotifyNotBuilt);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_UNSTABLE")
+    public Boolean getSlackNotifyUnstable();
+    @Mutator("SLACK_NOTIFY_UNSTABLE")
+    public void setSlackNotifyUnstable(Boolean slackNotifyUnstable);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_FAILURE")
+    public Boolean getSlackNotifyFailure();
+    @Mutator("SLACK_NOTIFY_FAILURE")
+    public void setSlackNotifyFailure(Boolean slackNotifyFailure);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_BACK_TO_NORMAL")
+    public Boolean getSlackNotifyBackToNormal();
+    @Mutator("SLACK_NOTIFY_BACK_TO_NORMAL")
+    public void setSlackNotifyBackToNormal(Boolean slackNotifyBackToNormal);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_NOTIFY_REPEATED_FAILURE")
+    public Boolean getSlackNotifyRepeatedFailure();
+    @Mutator("SLACK_NOTIFY_REPEATED_FAILURE")
+    public void setSlackNotifyRepeatedFailure(Boolean slackNotifyRepeatedFailure);
+
+    @NotNull
+    @Default("false")
+    @Accessor("SLACK_INCLUDE_TEST_SUMMARY")
+    public Boolean getSlackIncludeTestSummary();
+    @Mutator("SLACK_INCLUDE_TEST_SUMMARY")
+    public void setSlackIncludeTestSummary(Boolean slackIncludeTestSummary);
 
 }

@@ -18,6 +18,24 @@
  * @param junitPath
  * @param artifactsEnabled
  * @param artifactsPath
+ * @param slackEnabled
+ * @param slackTeamDomain
+ * @param slackAuthToken
+ * @param slackBuildServerUrl
+ * @param slackRoom
+ * @param slackCommitInfoOptions
+ * @param slackCommitInfoChoice
+ * @param slackCustomMessage
+ * @param slackStartNotification
+ * @param slackNotifySuccess
+ * @param slackNotifyAborted
+ * @param slackNotifyNotBuilt
+ * @param slackNotifyUnstable
+ * @param slackNotifyFailure
+ * @param slackNotifyBackToNormal
+ * @param slackNotifyRepeatedFailure
+ * @param slackIncludeTestSummary
+ * @param slackIncludeCustomMessage
  * @param maxVerifyChain
  * @param rebuildOnUpdate
  * @param emailRecipients
@@ -191,8 +209,7 @@
             {param descriptionText: 'Build node label to pin verify builds to' /}
           {/call}
 
-          <h4>&nbsp;</h4>
-
+          <h4>Junit Settings</h4>
           {call aui.form.checkboxField}
             {param legendContent: 'Junit Test Results' /}
             {param fields: [[
@@ -224,7 +241,7 @@
           {/call}
 
 
-          <h4>&nbsp;</h4>
+          <h4>Email Notification Settings</h4>
 
           {call aui.form.checkboxField}
             {param legendContent: 'E-mail notifications' /}
@@ -264,7 +281,151 @@
               ]] /}
           {/call}
 
-          <h4>&nbsp;</h4>
+          <h4>Slack Notification Settings</h4>
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Slack notifications' /}
+            {param fields: [[
+              'id': 'slackEnabled',
+              'labelText': 'Enabled (if not enabled, all other options below are ignored)',
+              'isChecked': $slackEnabled
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Build Start' /}
+            {param fields: [[
+              'id': 'slackStartNotification',
+              'labelText': 'Notify Build Start',
+              'isChecked': $slackStartNotification
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Success' /}
+            {param fields: [[
+              'id': 'slackNotifySuccess',
+              'labelText': 'Notify Success',
+              'isChecked': $slackNotifySuccess
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Aborted' /}
+            {param fields: [[
+              'id': 'slackNotifyAborted',
+              'labelText': 'Notify Aborted',
+              'isChecked': $slackNotifyAborted
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Not Built' /}
+            {param fields: [[
+              'id': 'slackNotifyNotBuilt',
+              'labelText': 'Notify Not Built',
+              'isChecked': $slackNotifyNotBuilt
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Unstable' /}
+            {param fields: [[
+              'id': 'slackNotifyUnstable',
+              'labelText': 'Notify Unstable',
+              'isChecked': $slackNotifyUnstable
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Failure' /}
+            {param fields: [[
+              'id': 'slackNotifyFailure',
+              'labelText': 'Notify Failure',
+              'isChecked': $slackNotifyFailure
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Repeated Failure' /}
+            {param fields: [[
+              'id': 'slackNotifyRepeatedFailure',
+              'labelText': 'Notify Repeated Failure',
+              'isChecked': $slackNotifyRepeatedFailure
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Notify Back To Normal' /}
+            {param fields: [[
+              'id': 'slackNotifyBackToNormal',
+              'labelText': 'Notify Back To Normal',
+              'isChecked': $slackNotifyBackToNormal
+              ]] /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Include Test Summary' /}
+            {param fields: [[
+              'id': 'slackIncludeTestSummary',
+              'labelText': 'Include Test Summary',
+              'isChecked': $slackIncludeTestSummary
+              ]] /}
+          {/call}
+
+          {call aui.form.textField}
+            {param id: 'slackRoom' /}
+            {param labelContent: 'Slack Room' /}
+            {param value: $slackRoom /}
+            {param descriptionText: 'Slack room name' /}
+          {/call}
+
+          {call aui.form.textField}
+            {param id: 'slackTeamDomain' /}
+            {param labelContent: 'Slack Team Domain' /}
+            {param value: $slackTeamDomain /}
+            {param descriptionText: 'Slack team domain to send alert to (overrides server default)' /}
+          {/call}
+
+          {call aui.form.textField}
+            {param id: 'slackAuthToken' /}
+            {param labelContent: 'Slack Auth Token' /}
+            {param value: $slackAuthToken /}
+            {param descriptionText: 'Slack authorization token (overrides server default)' /}
+          {/call}
+
+          {call aui.form.textField}
+            {param id: 'slackBuildServerUrl' /}
+            {param labelContent: 'Slack Build Server URL' /}
+            {param value: $slackBuildServerUrl /}
+            {param descriptionText: 'Build server URL to use in Slack notifications (overrides server default)' /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: 'Include Custom Message' /}
+            {param fields: [[
+              'id': 'slackIncludeCustomMessage',
+              'labelText': 'Include Custom Message',
+              'isChecked': $slackIncludeCustomMessage
+              ]] /}
+          {/call}
+
+          {call aui.form.textField}
+            {param id: 'slackCustomMessage' /}
+            {param labelContent: 'Slack Custom Message' /}
+            {param value: $slackCustomMessage /}
+            {param descriptionText: 'Custom message to use in Slack notifications' /}
+          {/call}
+
+          {call aui.form.selectField}
+            {param id: 'slackCommitInfoChoice' /}
+            {param labelContent: 'Notification message includes' /}
+            {param options: $slackCommitInfoOptions /}
+            {param value: $slackCommitInfoChoice /}
+            {param descriptionText: 'What commit information to include into notification message' /}
+          {/call}
+
+          <h4>Build Timeout</h4>
 
           {call aui.form.checkboxField}
             {param legendContent: 'Set manual build timeout' /}
@@ -280,7 +441,7 @@
             {param value: $buildTimeout /}
           {/call}
 
-          <h4>&nbsp;</h4>
+          <h4>Output Options</h4>
 
           {call aui.form.checkboxField}
             {param legendContent: 'Timestamp build output' /}
@@ -291,8 +452,6 @@
               ]] /}
           {/call}
 
-          <h4>&nbsp;</h4>
-
           {call aui.form.checkboxField}
             {param legendContent: 'ANSI colorize build output' /}
             {param fields: [[
@@ -302,7 +461,7 @@
               ]] /}
           {/call}
 
-          <h4>&nbsp;</h4>
+          <h4>Preserve Jenkins Job Config</h4>
 
           {call aui.form.checkboxField}
             {param legendContent: 'Preserve Jenkins Job Config' /}

@@ -233,7 +233,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
             false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false, false, false,
-            new BuildTimeoutSettings());
+            new BuildTimeoutSettings(), new SlackSettings());
     }
 
     /* (non-Javadoc)
@@ -274,13 +274,16 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         Boolean timestampJobOutputEnabled = getBoolean(req, "isTimestampJobOutputEnabled");
         Boolean ansiColorJobOutputEnabled = getBoolean(req, "isAnsiColorJobOutputEnabled");
+
         BuildTimeoutSettings buildTimeoutSettings = getBuildTimeoutSettings(req);
+
+        SlackSettings slackSettings = getSlackSettings(req);
 
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
             jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, artifactsEnabled, artifactsPath,
             maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig,
-            timestampJobOutputEnabled, ansiColorJobOutputEnabled, buildTimeoutSettings);
+            timestampJobOutputEnabled, ansiColorJobOutputEnabled, buildTimeoutSettings, slackSettings);
         RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
         setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, getBoolean(req, "verificationEnabled"));
         setJobTypeStatusMapping(rc, JobType.VERIFY_PR, getBoolean(req, "verifyPREnabled"));
@@ -328,6 +331,32 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         return new BuildTimeoutSettings(buildTimeoutEnabled, buildTimeout);
     }
 
+    private SlackSettings getSlackSettings(HttpServletRequest req) {
+        Boolean slackEnabled = getBoolean(req, "slackEnabled");
+        String slackTeamDomain = req.getParameter("slackTeamDomain");
+        String slackAuthToken = req.getParameter("slackAuthToken");
+        String slackBuildServerUrl = req.getParameter("slackBuildServerUrl");
+        String slackRoom = req.getParameter("slackRoom");
+        String slackCommitInfoChoice = req.getParameter("slackCommitInfoChoice");
+        String slackCustomMessage = req.getParameter("slackCustomMessage");
+        Boolean slackStartNotification = getBoolean(req, "slackStartNotification");
+        Boolean slackNotifySuccess = getBoolean(req, "slackNotifySuccess");
+        Boolean slackNotifyAborted = getBoolean(req, "slackNotifyAborted");
+        Boolean slackNotifyNotBuilt = getBoolean(req, "slackNotifyNotBuilt");
+        Boolean slackNotifyUnstable = getBoolean(req, "slackNotifyUnstable");
+        Boolean slackNotifyFailure = getBoolean(req, "slackNotifyFailure");
+        Boolean slackNotifyBackToNormal = getBoolean(req, "slackNotifyBackToNormal");
+        Boolean slackNotifyRepeatedFailure = getBoolean(req, "slackNotifyRepeatedFailure");
+        Boolean slackIncludeTestSummary = getBoolean(req, "slackIncludeTestSummary");
+        Boolean slackIncludeCustomMessage = getBoolean(req, "slackIncludeCustomMessage");
+        return new SlackSettings(slackEnabled, slackTeamDomain, slackAuthToken,
+                        slackBuildServerUrl, slackRoom, slackCommitInfoChoice,
+                        slackCustomMessage, slackStartNotification, slackNotifySuccess,
+                        slackNotifyAborted, slackNotifyNotBuilt, slackNotifyUnstable,
+                        slackNotifyFailure, slackNotifyBackToNormal, slackNotifyRepeatedFailure,
+                        slackIncludeTestSummary, slackIncludeCustomMessage);
+    }
+
     private boolean getBoolean(HttpServletRequest req, String parameter) {
         return (req.getParameter(parameter) == null) ? false : true;
     }
@@ -346,7 +375,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
             boolean strictVerifyMode, Boolean preserveJenkinsJobConfig,
             boolean timestampJobOutputEnabled, boolean ansiColorJobOutputEnabled,
-            BuildTimeoutSettings buildTimeoutSettings)
+            BuildTimeoutSettings buildTimeoutSettings,
+            SlackSettings slackSettings)
             throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -360,9 +390,9 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 + repo.getId());
             RepositoryConfiguration rc = ao.create(
                 RepositoryConfiguration.class,
-                new DBParam("REPO_ID", repo.getId()), new DBParam(
-                    "CI_ENABLED", isCiEnabled), new DBParam(
-                    "VERIFY_BRANCH_REGEX", verifyBranchRegex),
+                new DBParam("REPO_ID", repo.getId()),
+                new DBParam("CI_ENABLED", isCiEnabled),
+                new DBParam("VERIFY_BRANCH_REGEX", verifyBranchRegex),
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
                 new DBParam("VERIFY_PINNED", isVerifyPinned),
                 new DBParam("VERIFY_LABEL", verifyLabel),
@@ -387,7 +417,24 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 new DBParam("TIMESTAMPS_ENABLED", timestampJobOutputEnabled),
                 new DBParam("ANSICOLOR_ENABLED", ansiColorJobOutputEnabled),
                 new DBParam("BUILD_TIMEOUT_ENABLED", buildTimeoutSettings.getBuildTimeoutEnabled()),
-                new DBParam("BUILD_TIMEOUT", buildTimeoutSettings.getBuildTimeout())
+                new DBParam("BUILD_TIMEOUT", buildTimeoutSettings.getBuildTimeout()),
+                new DBParam("SLACK_ENABLED", slackSettings.getSlackEnabled()),
+                new DBParam("SLACK_TEAM_DOMAIN", slackSettings.getSlackTeamDomain()),
+                new DBParam("SLACK_AUTH_TOKEN", slackSettings.getSlackAuthToken()),
+                new DBParam("SLACK_BUILD_SERVER_URL", slackSettings.getSlackBuildServerUrl()),
+                new DBParam("SLACK_ROOM", slackSettings.getSlackRoom()),
+                new DBParam("SLACK_COMMIT_INFO_CHOICE", slackSettings.getSlackCommitInfoChoice()),
+                new DBParam("SLACK_INCLUDE_CUSTOM_MESSAGE", slackSettings.getSlackIncludeCustomMessage()),
+                new DBParam("SLACK_CUSTOM_MESSAGE", slackSettings.getSlackCustomMessage()),
+                new DBParam("SLACK_START_NOTIFICATION", slackSettings.getSlackStartNotification()),
+                new DBParam("SLACK_NOTIFY_SUCCESS", slackSettings.getSlackNotifySuccess()),
+                new DBParam("SLACK_NOTIFY_ABORTED", slackSettings.getSlackNotifyAborted()),
+                new DBParam("SLACK_NOTIFY_NOT_BUILT", slackSettings.getSlackNotifyNotBuilt()),
+                new DBParam("SLACK_NOTIFY_UNSTABLE", slackSettings.getSlackNotifyUnstable()),
+                new DBParam("SLACK_NOTIFY_FAILURE", slackSettings.getSlackNotifyFailure()),
+                new DBParam("SLACK_NOTIFY_BACK_TO_NORMAL", slackSettings.getSlackNotifyBackToNormal()),
+                new DBParam("SLACK_NOTIFY_REPEATED_FAILURE", slackSettings.getSlackNotifyRepeatedFailure()),
+                new DBParam("SLACK_INCLUDE_TEST_SUMMARY", slackSettings.getSlackIncludeTestSummary())
                 );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
@@ -430,6 +477,23 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         foundRepo.setAnsiColorJobOutputEnabled(ansiColorJobOutputEnabled);
         foundRepo.setBuildTimeoutEnabled(buildTimeoutSettings.getBuildTimeoutEnabled());
         foundRepo.setBuildTimeout(buildTimeoutSettings.getBuildTimeout());
+        foundRepo.setSlackEnabled(slackSettings.getSlackEnabled());
+        foundRepo.setSlackTeamDomain(slackSettings.getSlackTeamDomain());
+        foundRepo.setSlackAuthToken(slackSettings.getSlackAuthToken());
+        foundRepo.setSlackBuildServerUrl(slackSettings.getSlackBuildServerUrl());
+        foundRepo.setSlackRoom(slackSettings.getSlackRoom());
+        foundRepo.setSlackCommitInfoChoice(slackSettings.getSlackCommitInfoChoice());
+        foundRepo.setSlackIncludeCustomMessage(slackSettings.getSlackIncludeCustomMessage());
+        foundRepo.setSlackCustomMessage(slackSettings.getSlackCustomMessage());
+        foundRepo.setSlackStartNotification(slackSettings.getSlackStartNotification());
+        foundRepo.setSlackNotifySuccess(slackSettings.getSlackNotifySuccess());
+        foundRepo.setSlackNotifyAborted(slackSettings.getSlackNotifyAborted());
+        foundRepo.setSlackNotifyNotBuilt(slackSettings.getSlackNotifyNotBuilt());
+        foundRepo.setSlackNotifyUnstable(slackSettings.getSlackNotifyUnstable());
+        foundRepo.setSlackNotifyFailure(slackSettings.getSlackNotifyFailure());
+        foundRepo.setSlackNotifyBackToNormal(slackSettings.getSlackNotifyBackToNormal());
+        foundRepo.setSlackNotifyRepeatedFailure(slackSettings.getSlackNotifyRepeatedFailure());
+        foundRepo.setSlackIncludeTestSummary(slackSettings.getSlackIncludeTestSummary());
         foundRepo.save();
     }
 

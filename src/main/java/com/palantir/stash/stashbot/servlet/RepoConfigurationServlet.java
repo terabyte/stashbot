@@ -13,20 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.servlet;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-
 import com.atlassian.bitbucket.AuthorisationException;
 import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.permission.PermissionValidationService;
@@ -41,6 +27,7 @@ import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -49,6 +36,14 @@ import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
@@ -113,16 +108,47 @@ public class RepoConfigurationServlet extends HttpServlet {
         res.setContentType("text/html;charset=UTF-8");
 
         try {
-            List<Map<String, String>> jenkinsServersData = new ArrayList<Map<String, String>>();
+            ImmutableList.Builder<Map<String, String>> jenkinsServersData = ImmutableList.builder();
             for (JenkinsServerConfiguration jsc : configurationPersistanceManager.getAllJenkinsServerConfigurations()) {
-                HashMap<String, String> m = new HashMap<String, String>();
+                ImmutableMap.Builder<String, String> m = ImmutableMap.builder();
                 m.put("text", jsc.getName());
                 m.put("value", jsc.getName());
                 if (rc.getJenkinsServerName().equals(jsc.getName())) {
                     m.put("selected", "true");
                 }
-                jenkinsServersData.add(m);
+                jenkinsServersData.add(m.build());
             }
+
+            // not sure if there's a better place to put this?
+            //List<Map<String, String>> slackCommitInfoOptions = new ArrayList<Map<String, String>>();
+            ImmutableList.Builder<Map<String,String>> slackCommitInfoOptionsBuilder = ImmutableList.builder();
+
+            ImmutableMap.Builder<String, String> a = ImmutableMap.builder();
+            String slackCommitInfoChoice = rc.getSlackCommitInfoChoice();
+            a.put("text", "nothing about commits");
+            a.put("value", "NONE");
+            if (slackCommitInfoChoice == "NONE" || slackCommitInfoChoice == null) {
+              a.put("selected", "true");
+            }
+            slackCommitInfoOptionsBuilder.add(a.build());
+
+            ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+            b.put("text", "commit list with authors only");
+            b.put("value", "AUTHORS");
+            if (slackCommitInfoChoice == "AUTHORS") {
+              b.put("selected", "true");
+            }
+            slackCommitInfoOptionsBuilder.add(b.build());
+
+            ImmutableMap.Builder<String, String> c = ImmutableMap.builder();
+            c.put("text", "commit list with authors and titles");
+            c.put("value", "AUTHORS_AND_TITLES");
+            if (slackCommitInfoChoice == "AUTHORS_AND_TITLES") {
+              c.put("selected", "true");
+            }
+            slackCommitInfoOptionsBuilder.add(c.build());
+
+            ImmutableList<Map<String,String>> slackCommitInfoOptions = slackCommitInfoOptionsBuilder.build();
 
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             pageBuilderService.assembler().resources()
@@ -152,7 +178,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("junitPath", rc.getJunitPath())
                         .put("artifactsEnabled", rc.getArtifactsEnabled())
                         .put("artifactsPath", rc.getArtifactsPath())
-                        .put("jenkinsServersData", jenkinsServersData)
+                        .put("jenkinsServersData", jenkinsServersData.build())
                         .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
                         .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
                         .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
@@ -162,6 +188,24 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
                         .put("isBuildTimeoutEnabled", rc.getBuildTimeoutEnabled())
                         .put("buildTimeout", rc.getBuildTimeout())
+                        .put("slackEnabled", rc.getSlackEnabled())
+                        .put("slackTeamDomain", rc.getSlackTeamDomain())
+                        .put("slackAuthToken", rc.getSlackAuthToken())
+                        .put("slackBuildServerUrl", rc.getSlackBuildServerUrl())
+                        .put("slackRoom", rc.getSlackRoom())
+                        .put("slackCommitInfoOptions", slackCommitInfoOptions)
+                        .put("slackCommitInfoChoice", slackCommitInfoChoice)
+                        .put("slackCustomMessage", rc.getSlackCustomMessage())
+                        .put("slackStartNotification", rc.getSlackStartNotification())
+                        .put("slackNotifySuccess", rc.getSlackNotifySuccess())
+                        .put("slackNotifyAborted", rc.getSlackNotifyAborted())
+                        .put("slackNotifyNotBuilt", rc.getSlackNotifyNotBuilt())
+                        .put("slackNotifyUnstable", rc.getSlackNotifyUnstable())
+                        .put("slackNotifyFailure", rc.getSlackNotifyFailure())
+                        .put("slackNotifyBackToNormal", rc.getSlackNotifyBackToNormal())
+                        .put("slackNotifyRepeatedFailure", rc.getSlackNotifyRepeatedFailure())
+                        .put("slackIncludeTestSummary", rc.getSlackIncludeTestSummary())
+                        .put("slackIncludeCustomMessage", rc.getSlackIncludeCustomMessage())
                         .put("isTimestampJobOutputEnabled", rc.getTimestampJobOutputEnabled())
                         .put("isAnsiColorJobOutputEnabled", rc.getAnsiColorJobOutputEnabled())
                         .put("isLocked", isLocked(theJsc))

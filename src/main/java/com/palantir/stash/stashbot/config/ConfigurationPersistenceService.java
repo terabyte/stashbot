@@ -76,7 +76,8 @@ public interface ConfigurationPersistenceService {
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
             boolean strictVerifyMode, Boolean preserveJenkinsJobConfig, boolean timestampJobOutputEnabled,
-            boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings)
+            boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings,
+            SlackSettings slackSettings)
             throws SQLException, IllegalArgumentException;
 
     public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -178,6 +179,140 @@ public interface ConfigurationPersistenceService {
         public Integer getBuildTimeout() {
             return buildTimeout;
         }
+    }
+
+    public static class SlackSettings {
+
+        private final Boolean slackEnabled;
+        private final String slackTeamDomain;
+        private final String slackAuthToken;
+        private final String slackBuildServerUrl;
+        private final String slackRoom;
+        private final String slackCommitInfoChoice;
+        private final String slackCustomMessage;
+        private final Boolean slackStartNotification;
+        private final Boolean slackNotifySuccess;
+        private final Boolean slackNotifyAborted;
+        private final Boolean slackNotifyNotBuilt;
+        private final Boolean slackNotifyUnstable;
+        private final Boolean slackNotifyFailure;
+        private final Boolean slackNotifyBackToNormal;
+        private final Boolean slackNotifyRepeatedFailure;
+        private final Boolean slackIncludeTestSummary;
+        private final Boolean slackIncludeCustomMessage;
+
+        public SlackSettings() {
+            this(false,
+                 "", "", "", "", "", "",
+                 false, false, false, false, false, false, false, false, false, false);
+        }
+
+        public SlackSettings(
+                        Boolean slackEnabled,
+                        String slackTeamDomain,
+                        String slackAuthToken,
+                        String slackBuildServerUrl,
+                        String slackRoom,
+                        String slackCommitInfoChoice,
+                        String slackCustomMessage,
+                        Boolean slackStartNotification,
+                        Boolean slackNotifySuccess,
+                        Boolean slackNotifyAborted,
+                        Boolean slackNotifyNotBuilt,
+                        Boolean slackNotifyUnstable,
+                        Boolean slackNotifyFailure,
+                        Boolean slackNotifyBackToNormal,
+                        Boolean slackNotifyRepeatedFailure,
+                        Boolean slackIncludeTestSummary,
+                        Boolean slackIncludeCustomMessage
+                        ) {
+            this.slackEnabled = slackEnabled;
+            this.slackTeamDomain = slackTeamDomain;
+            this.slackAuthToken = slackAuthToken;
+            this.slackBuildServerUrl = slackBuildServerUrl;
+            this.slackRoom = slackRoom;
+            this.slackCommitInfoChoice = slackCommitInfoChoice;
+            this.slackCustomMessage = slackCustomMessage;
+            this.slackStartNotification = slackStartNotification;
+            this.slackNotifySuccess = slackNotifySuccess;
+            this.slackNotifyAborted = slackNotifyAborted;
+            this.slackNotifyNotBuilt = slackNotifyNotBuilt;
+            this.slackNotifyUnstable = slackNotifyUnstable;
+            this.slackNotifyFailure = slackNotifyFailure;
+            this.slackNotifyBackToNormal = slackNotifyBackToNormal;
+            this.slackNotifyRepeatedFailure = slackNotifyRepeatedFailure;
+            this.slackIncludeTestSummary = slackIncludeTestSummary;
+            this.slackIncludeCustomMessage = slackIncludeCustomMessage;
+        }
+
+        public Boolean getSlackEnabled() {
+            return slackEnabled;
+        }
+
+        public String getSlackTeamDomain() {
+            return slackTeamDomain;
+        }
+
+        public String getSlackAuthToken() {
+            return slackAuthToken;
+        }
+
+        public String getSlackBuildServerUrl() {
+            return slackBuildServerUrl;
+        }
+
+        public String getSlackRoom() {
+            return slackRoom;
+        }
+
+        public String getSlackCommitInfoChoice() {
+            return slackCommitInfoChoice;
+        }
+
+        public String getSlackCustomMessage() {
+            return slackCustomMessage;
+        }
+
+        public Boolean getSlackStartNotification() {
+            return slackStartNotification;
+        }
+
+        public Boolean getSlackNotifySuccess() {
+            return slackNotifySuccess;
+        }
+
+        public Boolean getSlackNotifyAborted() {
+            return slackNotifyAborted;
+        }
+
+        public Boolean getSlackNotifyNotBuilt() {
+            return slackNotifyNotBuilt;
+        }
+
+        public Boolean getSlackNotifyUnstable() {
+            return slackNotifyUnstable;
+        }
+
+        public Boolean getSlackNotifyFailure() {
+            return slackNotifyFailure;
+        }
+
+        public Boolean getSlackNotifyBackToNormal() {
+            return slackNotifyBackToNormal;
+        }
+
+        public Boolean getSlackNotifyRepeatedFailure() {
+            return slackNotifyRepeatedFailure;
+        }
+
+        public Boolean getSlackIncludeTestSummary() {
+            return slackIncludeTestSummary;
+        }
+
+        public Boolean getSlackIncludeCustomMessage() {
+            return slackIncludeCustomMessage;
+        }
+
     }
 
 }
