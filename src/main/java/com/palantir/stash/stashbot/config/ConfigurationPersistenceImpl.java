@@ -21,6 +21,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import net.java.ao.DBParam;
+import net.java.ao.Entity;
 import net.java.ao.Query;
 
 import org.slf4j.Logger;
@@ -49,6 +50,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     private final ActiveObjects ao;
     private final Logger log;
     private final EventPublisher publisher;
+
+    private final Object pullRequestMetadataTableLock = new Object();
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
@@ -582,26 +585,28 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
      */
     @Override
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
-        // We have to check repoId being equal to -1 so that this works with old data.
-        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
-            toSha, fromSha);
-        if (prms.length == 0) {
-            // new/updated PR, create a new object
-            log.info("Creating PR Metadata for pull request: repo id: " + repoId
-                + "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: " + toSha);
-            PullRequestMetadata prm =
-                ao.create(
-                    PullRequestMetadata.class,
-                    new DBParam("REPO_ID", repoId),
-                    new DBParam("PULL_REQUEST_ID", prId),
-                    new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha));
-            prm.save();
-            return prm;
-
+        // nuke this race from orbit - XXX: might not solve the issue for high-availability (multiple app server) configurations.
+        synchronized (pullRequestMetadataTableLock) {
+            // We have to check repoId being equal to -1 so that this works with old data.
+            PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+                    "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
+                    toSha, fromSha);
+            PullRequestMetadata theOne = highlander(prms);
+            if (theOne == null) {
+                // new/updated PR, create a new object
+                log.info("Creating PR Metadata for pull request: repo id: " + repoId
+                        + "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: " + toSha);
+                theOne = ao.create(
+                                PullRequestMetadata.class,
+                                new DBParam("REPO_ID", repoId),
+                                new DBParam("PULL_REQUEST_ID", prId),
+                                new DBParam("TO_SHA", toSha),
+                                new DBParam("FROM_SHA", fromSha));
+                theOne.save();
+                return theOne;
+            }
+            return theOne;
         }
-        return prms[0];
     }
 
     /* (non-Javadoc)
@@ -614,25 +619,28 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String toSha = pr.getToRef().getLatestCommit().toString();
         Repository repo = pr.getToRef().getRepository();
 
-        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "REPO_ID = ? and PULL_REQUEST_ID = ? and FROM_SHA = ?", repo.getId(), id, fromSha);
-        if (prms.length == 0) {
-            // new/updated PR, create a new object
-            log.info("Creating PR Metadata for pull request: "
-                + pullRequestToString(pr));
-            PullRequestMetadata prm =
-                ao.create(
-                    PullRequestMetadata.class,
-                    new DBParam("REPO_ID", repo.getId()),
-                    new DBParam("PULL_REQUEST_ID", id),
-                    new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha)
-                );
-            prm.save();
-            return ImmutableList.of(prm);
+        // nuke this race from orbit - XXX: might not solve the issue for high-availability (multiple app server) configurations.
+        synchronized (pullRequestMetadataTableLock) {
+            PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+                    "REPO_ID = ? and PULL_REQUEST_ID = ? and FROM_SHA = ?", repo.getId(), id, fromSha);
+            if (prms.length == 0) {
+                // new/updated PR, create a new object
+                log.info("Creating PR Metadata for pull request: "
+                        + pullRequestToString(pr));
+                PullRequestMetadata prm =
+                        ao.create(
+                                PullRequestMetadata.class,
+                                new DBParam("REPO_ID", repo.getId()),
+                                new DBParam("PULL_REQUEST_ID", id),
+                                new DBParam("TO_SHA", toSha),
+                                new DBParam("FROM_SHA", fromSha)
+                        );
+                prm.save();
+                return ImmutableList.of(prm);
 
+            }
+            return ImmutableList.copyOf(prms);
         }
-        return ImmutableList.copyOf(prms);
     }
 
     // Automatically sets the fromHash and toHash from the PullRequest object
@@ -664,7 +672,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override, Boolean failed) {
         PullRequestMetadata prm =
-            getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash, toHash);
+                getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash, toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }
@@ -721,5 +729,20 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public String getDefaultPrivateSshKey() {
         return getDefaultAuthenticationCredential().getPrivateKey();
+    }
+
+    /**
+     * Return the row with the highest ID. There can be only one...
+     */
+    private static <T extends Entity> T highlander(T[] rows) {
+        T maxRow = null;
+        int maxID = 0;
+        for (T row : rows) {
+            if (row.getID() > maxID) {
+                maxRow = row;
+                maxID = row.getID();
+            }
+        }
+        return maxRow;
     }
 }
