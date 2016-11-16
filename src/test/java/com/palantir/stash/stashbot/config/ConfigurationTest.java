@@ -13,27 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.config;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import junit.framework.Assert;
-import net.java.ao.DBParam;
-import net.java.ao.EntityManager;
-import net.java.ao.test.jdbc.Data;
-import net.java.ao.test.jdbc.DatabaseUpdater;
-import net.java.ao.test.jdbc.DynamicJdbcConfiguration;
-import net.java.ao.test.jdbc.Jdbc;
-import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.bitbucket.pull.PullRequest;
@@ -43,8 +22,8 @@ import com.atlassian.event.api.EventPublisher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildTimeoutSettings;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.SlackSettings;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.SlackSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -54,11 +33,33 @@ import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.Authen
 import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import junit.framework.Assert;
+import net.java.ao.DBParam;
+import net.java.ao.EntityManager;
+import net.java.ao.test.jdbc.Data;
+import net.java.ao.test.jdbc.DatabaseUpdater;
+import net.java.ao.test.jdbc.DynamicJdbcConfiguration;
+import net.java.ao.test.jdbc.Jdbc;
+import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
 @Jdbc(DynamicJdbcConfiguration.class)
 @Data(DataStuff.class)
 public class ConfigurationTest {
+
+    private static final int RACE_COUNT = 100;
+    private static final int RACE_DEPTH = 20;
 
     private static final Long PR_ID = 1234L;
     private static final Integer REPO_ID = 1235;
@@ -284,6 +285,61 @@ public class ConfigurationTest {
         Assert.assertEquals(false, prm2.getSuccess().booleanValue());
         Assert.assertEquals(false, prm2.getOverride().booleanValue());
         Mockito.verify(publisher).publish(Mockito.any(StashbotMetadataUpdatedEvent.class));
+    }
+
+    private PullRequest newPR(long i) {
+        PullRequest pr = Mockito.mock(PullRequest.class);
+        Mockito.when(pr.getId()).thenReturn(i);
+        PullRequestRef to = Mockito.mock(PullRequestRef.class);
+        PullRequestRef from = Mockito.mock(PullRequestRef.class);
+        Mockito.when(from.getId()).thenReturn("from" + Long.toString(i));
+        Mockito.when(from.getLatestCommit()).thenReturn("from" + Long.toString(i));
+        Mockito.when(from.getRepository()).thenReturn(repo);
+        Mockito.when(to.getId()).thenReturn("to" + Long.toString(i));
+        Mockito.when(to.getLatestCommit()).thenReturn("to" + Long.toString(i));
+        Mockito.when(to.getRepository()).thenReturn(repo);
+        Mockito.when(pr.getFromRef()).thenReturn(from);
+        Mockito.when(pr.getToRef()).thenReturn(to);
+        return pr;
+    }
+
+    @Test
+    public void testPRMRace() throws Exception {
+        Assert.assertEquals(0, ao.count(PullRequestMetadata.class));
+        ImmutableList.Builder<PullRequest> b = ImmutableList.builder();
+        for (long i = 1; i < RACE_COUNT+1; ++i) {
+            b.add(newPR(i));
+        }
+
+        b.build().forEach((pr) -> {
+            int startCount = ao.count(PullRequestMetadata.class);
+            // for each pull request, try to many-way race
+            // Use a count-down latch to maximize race potential, ignore thread construction time
+            CountDownLatch barrier = new CountDownLatch(RACE_DEPTH);
+            ImmutableList.Builder<Thread> threadList = ImmutableList.builder();
+            for (int i = 0; i < RACE_DEPTH; ++i) {
+                Thread t = new Thread(() -> {
+                    try {
+                        barrier.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    cpm.getPullRequestMetadata(pr);
+                });
+                threadList.add(t);
+            }
+
+            ImmutableList<Thread> racingThreads = threadList.build();
+            racingThreads.forEach((t) -> { t.start(); barrier.countDown(); });
+            racingThreads.forEach((t) -> {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            Assert.assertEquals("Detected Race Condition for pr test " + pr.getId(), startCount + 1, ao.count(PullRequestMetadata.class));
+        });
     }
 
     @Test
