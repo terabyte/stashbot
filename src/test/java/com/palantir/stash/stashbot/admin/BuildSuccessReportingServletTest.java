@@ -21,6 +21,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.atlassian.bitbucket.comment.AddCommentRequest;
+import com.atlassian.bitbucket.comment.CommentService;
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -79,6 +81,8 @@ public class BuildSuccessReportingServletTest {
     @Mock
     private PullRequestService prs;
     @Mock
+    private CommentService commentService;
+    @Mock
     private RepositoryConfiguration rc;
     @Mock
     private JenkinsServerConfiguration jsc;
@@ -125,10 +129,12 @@ public class BuildSuccessReportingServletTest {
 
         Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString()))
             .thenReturn(jsc);
+        Mockito.when(rc.getJenkinsServerName()).thenReturn("test");
         Mockito.when(
             cpm.getRepositoryConfigurationForRepository(Mockito
                 .any(Repository.class))).thenReturn(rc);
         Mockito.when(jsc.getUrl()).thenReturn(ABSOLUTE_URL);
+        Mockito.when(jsc.getUsername()).thenReturn("some-stash-username");
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.getById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
@@ -145,7 +151,8 @@ public class BuildSuccessReportingServletTest {
                 Mockito.any(PullRequest.class))).thenReturn(
             ABSOLUTE_URL);
         Mockito.when(ub.getJenkinsBuildUrl(Mockito.any(Repository.class), Mockito.any(JobTemplate.class), Mockito.anyLong())).thenReturn(ABSOLUTE_URL);
-        
+
+        Mockito.when(us.findUserByNameOrEmail(Mockito.anyString())).thenReturn(Mockito.mock(ApplicationUser.class));
         Mockito.when(ss.impersonating(Mockito.any(ApplicationUser.class), Mockito.anyString())).thenReturn(esc);
         Mockito.when(ss.withPermission(Mockito.any(Permission.class), Mockito.anyString())).thenReturn(esc);
 
@@ -169,7 +176,7 @@ public class BuildSuccessReportingServletTest {
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
         bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss,
-            prs, ub, jtm, ss, us, lf);
+            prs, commentService, ub, jtm, ss, us, lf);
     }
 
     @Test
@@ -256,19 +263,17 @@ public class BuildSuccessReportingServletTest {
 
         bsrs.doGet(req, res);
 
-        ArgumentCaptor<String> stringCaptor = ArgumentCaptor
-            .forClass(String.class);
+        ArgumentCaptor<AddCommentRequest> commentCaptor = ArgumentCaptor.forClass(AddCommentRequest.class);
 
-        Mockito.verify(prs).addComment(Mockito.eq(REPO_ID),
-            Mockito.eq(PULL_REQUEST_ID), stringCaptor.capture());
+        Mockito.verify(commentService).addComment(commentCaptor.capture());
         Mockito.verify(res).setStatus(200);
         Mockito.verify(cpm).setPullRequestMetadata(pr, MERGE_HEAD, HEAD, null, true, null, false);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));
 
-        String commentText = stringCaptor.getValue();
-        Assert.assertTrue(commentText.contains("passed"));
+        AddCommentRequest commentRequest = commentCaptor.getValue();
+        Assert.assertTrue(commentRequest.getText().contains("passed"));
     }
 
     // path info:

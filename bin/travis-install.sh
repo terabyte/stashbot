@@ -6,7 +6,7 @@
 ./bin/install-plugin-sdk.sh
 
 # The maven dependencies: cache $HOME/.m2
-./bin/invoke-sdk.sh dependency:go-offline
+./bin/invoke-sdk.sh --quiet dependency:go-offline
 
 echo "Size of plugin SDK: "
 du -hs .sdk
