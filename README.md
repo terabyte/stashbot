@@ -1,10 +1,8 @@
 # Stashbot
 
-Bitbucket Server 4.X Build Status: [![Build Status](https://travis-ci.org/terabyte/stashbot.svg?branch=master)](https://travis-ci.org/terabyte/stashbot)
+Dwolla has forked this plugin to upgrade it to Bitbucket 5.  Future upgrades are unlikely.  Responses to pull requests and issues may be slow.  
 
-Stash 3.X Build Status: [![Build Status](https://travis-ci.org/terabyte/stashbot.svg?branch=stash-3.x-backports)](https://travis-ci.org/terabyte/stashbot)
-
-Stashbot is a plugin designed to enable a continuous integration workflow within stash (similar to gerrit + jenkins).
+Bitbucket Server 5.X Build Status: [![Build Status](https://travis-ci.org/Dwolla/stashbot.svg?branch=master)](https://travis-ci.org/dwolla/stashbot)
 
 # INSTALL GUIDE
 

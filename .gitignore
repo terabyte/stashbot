@@ -13,3 +13,5 @@ target/*
 .sdk/
 .sdk.tar.gz
 versions/*
+.idea/
+stashbot.iml
