@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.atlassian.bitbucket.comment.CommentService;
 import org.slf4j.Logger;
 
 import com.atlassian.bitbucket.build.BuildState;
@@ -67,6 +68,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final RepositoryService repositoryService;
     private final BuildStatusService buildStatusService;
     private final PullRequestService pullRequestService;
+    private final CommentService commentService;
     private final StashbotUrlBuilder ub;
     private final JobTemplateManager jtm;
     private final SecurityService ss;
@@ -75,7 +77,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
     /**
      * @deprecated Use
-     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceImpl,RepositoryService,BuildStatusService,PullRequestService,StashbotUrlBuilder,JobTemplateManager,SecurityService,PluginLoggerFactory)}
+     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceImpl,RepositoryService,BuildStatusService,PullRequestService,CommentService,StashbotUrlBuilder,JobTemplateManager,SecurityService,PluginLoggerFactory)}
      *             instead
      */
     @Deprecated
@@ -83,9 +85,11 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         ConfigurationPersistenceService configurationPersistenceManager,
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
-        PullRequestService pullRequestService, StashbotUrlBuilder ub,
+        PullRequestService pullRequestService,
+        CommentService commentService,
+        StashbotUrlBuilder ub,
         JobTemplateManager jtm, PluginLoggerFactory lf) {
-        this(configurationPersistenceManager, repositoryService, buildStatusService, pullRequestService, ub, jtm,
+        this(configurationPersistenceManager, repositoryService, buildStatusService, pullRequestService, commentService, ub, jtm,
             null, null, lf);
 
     }
@@ -94,12 +98,15 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         ConfigurationPersistenceService configurationPersistenceManager,
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
-        PullRequestService pullRequestService, StashbotUrlBuilder ub,
+        PullRequestService pullRequestService,
+        CommentService commentService,
+        StashbotUrlBuilder ub,
         JobTemplateManager jtm, SecurityService ss, UserService us, PluginLoggerFactory lf) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
         this.pullRequestService = pullRequestService;
+        this.commentService = commentService;
         this.ub = ub;
         this.jtm = jtm;
         this.log = lf.getLoggerForThis(this);
@@ -272,12 +279,13 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 + " mergeHead " + mergeHead);
             // Still make comment so users can see links to build
             PullRequestCommentAddOperation prcao =
-                new PullRequestCommentAddOperation(pullRequestService, repo.getId(), pullRequest.getId(), sb.toString());
+                new PullRequestCommentAddOperation(pullRequestService, commentService, repo.getId(), pullRequest.getId(), sb.toString());
 
             // So in order to create comments, we have to do it AS some user.  ss.doAsUser rather than ss.doWithPermission is the magic sauce here.
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-            ApplicationUser user = us.findUserByNameOrEmail(jsc.getStashUsername());
+            String username = jsc.getUsername();
+            ApplicationUser user = us.findUserByNameOrEmail(username);
             ss.impersonating(user, "BUILD SUCCESS REPORT").call(prcao);
 
             printOutput(req, res);

@@ -15,11 +15,10 @@ package com.palantir.stash.stashbot.managers;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+import com.google.common.jenkins_client_jarjar.base.Optional;
+import com.offbytwo.jenkins.model.JobWithDetails;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -136,7 +135,7 @@ public class JenkinsManagerTest {
 
             @Override
             public Void answer(InvocationOnMock invocation) throws Throwable {
-                StringWriter writer = invocation.getArgumentAt(1, StringWriter.class);
+                StringWriter writer = invocation.getArgument(1);
                 writer.write(CREATE_GROOVY_SCRIPT);
                 return null;
             }
@@ -147,7 +146,7 @@ public class JenkinsManagerTest {
 
             @Override
             public Void answer(InvocationOnMock invocation) throws Throwable {
-                StringWriter writer = invocation.getArgumentAt(1, StringWriter.class);
+                StringWriter writer = invocation.getArgument(1);
                 writer.write(GET_GROOVY_SCRIPT);
                 return null;
             }
@@ -166,6 +165,7 @@ public class JenkinsManagerTest {
             xmlFormatter.generateJobXml(Mockito.any(JobTemplate.class),
                 Mockito.eq(repo))).thenReturn(XML_STRING);
 
+        Mockito.when(rc.getJenkinsServerName()).thenReturn("test");
         Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString()))
             .thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo))
@@ -174,6 +174,7 @@ public class JenkinsManagerTest {
         Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");
         Mockito.when(jsc.getPassword()).thenReturn("jenkins_password");
         Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
+        Mockito.when(jsc.getUseSubFolders()).thenReturn(true);
         Mockito.when(cpm.getDefaultPrivateSshKey()).thenReturn("");
 
         Mockito.when(repo.getName()).thenReturn("somename");
@@ -184,6 +185,13 @@ public class JenkinsManagerTest {
         Mockito.when(um.getRemoteUser()).thenReturn(up);
         Mockito.when(up.getUsername()).thenReturn("someuser");
         Mockito.when(us.getUserByName(Mockito.anyString())).thenReturn(su);
+        Mockito.when(us.findUserByNameOrEmail(Mockito.anyString())).thenReturn(su);
+
+        JobWithDetails j = Mockito.mock(JobWithDetails.class);
+        FolderJob fj = Mockito.mock(FolderJob.class);
+        Mockito.when(jenkinsServer.getJob(Mockito.isNull(), Mockito.anyString())).thenReturn(j);
+        Mockito.when(jenkinsServer.getJob(Mockito.any(FolderJob.class), Mockito.anyString())).thenReturn(j);
+        Mockito.when(jenkinsServer.getFolderJob(j)).thenReturn(Optional.of(fj));
 
         mssb = new MockSecurityServiceBuilder();
 
@@ -218,8 +226,7 @@ public class JenkinsManagerTest {
         Job existingJob = Mockito.mock(Job.class);
         Map<String, Job> jobMap = new HashMap<String, Job>();
         jobMap.put(jobName, existingJob);
-        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
-        Mockito.when(jenkinsServer.getJobs((FolderJob) null)).thenReturn(jobMap);
+        Mockito.when(jenkinsServer.getJobs(Mockito.any(FolderJob.class))).thenReturn(jobMap);
 
         JobTemplate jt = jtm.getDefaultVerifyJob();
 
@@ -250,8 +257,7 @@ public class JenkinsManagerTest {
         Mockito.when(existingJob.getName()).thenReturn(jobName);
         Map<String, Job> jobMap = new HashMap<String, Job>();
         jobMap.put(jobName, existingJob);
-        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
-        Mockito.when(jenkinsServer.getJobs((FolderJob) null)).thenReturn(jobMap);
+        Mockito.when(jenkinsServer.getJobs(Mockito.any(FolderJob.class))).thenReturn(jobMap);
 
         Mockito.when(jtm.getJobTemplate(JobType.VERIFY_COMMIT, rc)).thenReturn(
             jt);
@@ -278,6 +284,7 @@ public class JenkinsManagerTest {
     public void testUpdateRepoCIEnabled() throws IOException {
 
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
+        Mockito.when(jsc.getUseSubFolders()).thenReturn(false);
 
         jenkinsManager.updateRepo(repo);
 
@@ -285,8 +292,12 @@ public class JenkinsManagerTest {
 
         for (JobTemplate t : templates) {
             String buildName = t.getBuildNameFor(repo);
-            Mockito.verify(jenkinsServer).createJob((FolderJob) Mockito.isNull(), Mockito.eq(buildName),
-                Mockito.anyString(), Mockito.eq(false));
+            Mockito.verify(jenkinsServer).createJob(
+                    (FolderJob) Mockito.isNull(),
+                    Mockito.eq(buildName),
+                    Mockito.anyString(),
+                    Mockito.eq(false)
+            );
         }
     }
 
@@ -307,15 +318,18 @@ public class JenkinsManagerTest {
         JobTemplate jt = jtm.getDefaultVerifyJob();
         HashMap<String, Job> jobs = Maps.newHashMap();
         jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic requires the job be there already
+        Mockito.when(jenkinsServer.getJobs(Mockito.any(FolderJob.class))).thenReturn(jobs);
 
         Mockito.when(rc.getPreserveJenkinsJobConfig()).thenReturn(false);
-        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobs);
-        Mockito.when(jenkinsServer.getJobs((FolderJob) null)).thenReturn(jobs);
 
         jenkinsManager.updateJob(repo, jt);
 
-        Mockito.verify(jenkinsServer).updateJob(Mockito.any(FolderJob.class), Mockito.anyString(), Mockito.anyString(),
-            Mockito.eq(false));
+        Mockito.verify(jenkinsServer).updateJob(
+                Mockito.any(FolderJob.class),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.eq(false)
+        );
     }
 
     @Test

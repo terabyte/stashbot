@@ -87,7 +87,7 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
         // First trigger all publish builds (if they are enabled)
         if (cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH)) {
             for (RefChange refChange : changes) {
-                if (!refChange.getRefId().matches(rc.getPublishBranchRegex())) {
+                if (!refChange.getRef().getId().matches(rc.getPublishBranchRegex())) {
                     continue;
                 }
 
@@ -104,7 +104,7 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
                 // published and not verified, if the ref matches both build and verify.
                 log.info("Stashbot Trigger: Triggering PUBLISH build for commit " + refChange.getToHash());
                 // trigger a publication build
-                jenkinsManager.triggerBuild(repo, JobType.PUBLISH, refChange.getToHash(), refChange.getRefId());
+                jenkinsManager.triggerBuild(repo, JobType.PUBLISH, refChange.getToHash(), refChange.getRef().getId());
                 publishBuilds.add(refChange.getToHash());
             }
         }
@@ -141,12 +141,12 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
 
         // now calculate the changed/added/deleted refs
         for (RefChange refChange : changes) {
-            if (!refChange.getRefId().matches(rc.getVerifyBranchRegex())) {
+            if (!refChange.getRef().getId().matches(rc.getVerifyBranchRegex())) {
                 continue;
             }
 
             // Since we are a verify branch that changed, we need to not be in minusBranches anymore
-            minusBranches.remove(refChange.getRefId());
+            minusBranches.remove(refChange.getRef().getId());
 
             switch (refChange.getType()) {
             case DELETE:

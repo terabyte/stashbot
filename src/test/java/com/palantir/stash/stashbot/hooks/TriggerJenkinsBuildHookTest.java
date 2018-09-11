@@ -16,6 +16,7 @@ package com.palantir.stash.stashbot.hooks;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.atlassian.bitbucket.repository.MinimalRef;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,6 +38,8 @@ import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
+
+import static org.mockito.Mockito.mock;
 
 public class TriggerJenkinsBuildHookTest {
 
@@ -89,11 +92,14 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(".*master.*");
         Mockito.when(rc.getPublishBranchRegex()).thenReturn(".*release.*");
+        Mockito.when(rc.getJenkinsServerName()).thenReturn("test");
         Mockito.when(jsc.getMaxVerifyChain()).thenReturn(MVC);
 
         Mockito.when(change.getFromHash()).thenReturn(FROM_HEAD);
         Mockito.when(change.getToHash()).thenReturn(HEAD);
-        Mockito.when(change.getRefId()).thenReturn(HEAD_BR);
+        MinimalRef ref = mock(MinimalRef.class);
+        Mockito.when(change.getRef()).thenReturn(ref);
+        Mockito.when(ref.getId()).thenReturn(HEAD_BR);
         Mockito.when(change.getType()).thenReturn(RefChangeType.UPDATE);
 
         changes = new ArrayList<RefChange>();
