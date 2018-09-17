@@ -1,11 +1,24 @@
 language: java
+
 jdk:
-    - oraclejdk8
+- oraclejdk8
 
-install: ./bin/travis-install.sh
+env:
+  global:
+  - secure: qCBsbcFJJuei7Yz8RVgb4KQud/WE94KXfi3rncdL8fdOJoEUlgYTE4ur9oQL+gP5hHMgPNceE8+zr6zlo4Gaw5SlGkUA97xNVpI6le9NdaHClmmSmlSkHVoFz25shM/KJAn9FOS1Kmu6exSYhtLKlHmyjrWpyCMSHWvCXkx8sxMVcKBa492aCfWCkW42G3wDRkZwYbWqTUeQJENB7ZoCnfUBGuzJ4rudNk6BjIZydiv30CWCaXxNq8kQ52pZocK17tRUXKnoXbdYU3O4YB3naPhIySxrDmuXNXkWhqJ3hw2yeDr8QAtv0bvJAvQnpKuzQ9b+sAsH5zk6mkRIaInaL+P1tlI+cx2gD8EMyJN4BvetXjcXW+f9ZyBN8LOZ9CVnUQ2oTuf+w+Rq9vokAsSZH1QqJ6M9k5J6U7v9OvkZWE9sFREbgl0m2ihTPg+1tngoESsCJlMVLKkE4UPOVbNvrjqrI6+25/hZUUO+vC1qmDWLFyG8qD0qD+PTWgbDAPerbYPsnHrqqIf4v10I6ap0FGlBkJs0PXhuCVQtkGA7ItvUx0Eeb6AwtV61rE1M2a/gj6W7l/npHL9f+jYKTRtVYTE+jvIvYrW3n3vbvO4qzp+DDiUDmhH77CWTNOJxtyq4rf8+JARoNjMjbjGiq7PDFXAUHN9kXRoQidjlnvlUBKo=
+
+install: ".travis/install.sh"
+
 cache:
-    directories:
-        - .sdk
-        - $HOME/.m2
+  directories:
+  - "$HOME/.m2"
 
-script: ./bin/travis.sh
+script: ".travis/build.sh"
+
+deploy:
+- provider: script
+  script: ".travis/release.sh"
+  on:
+    jdk: oraclejdk8
+    branch: master
+    condition: $(git log -n1 --format=format:"%an") != "Dwolla Bot"
