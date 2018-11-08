@@ -78,7 +78,6 @@ public class RetriggerLinkWebPanel implements WebPanel {
             // also would be nice to inject this script once at the top somehow
             writer.append("Trigger: ( ");
             writer.append("<a onclick=\"location.href=this.href+'?reason=refs/heads/'+document.getElementById('repository-layout-revision-selector').title;return false;\" id=\"stashbotVerifyLink\" href=\"" + url + "\">Verify</a> | ");
-            writer.append("<a onclick=\"location.href=this.href+'?reason=refs/heads/'+document.getElementById('repository-layout-revision-selector').title;return false;\" id=\"stashbotPublishLink\" href=\"" + pubUrl + "\">Publish</a> )");
         } catch (SQLException e) {
             throw new IOException(e);
         }
