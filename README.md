@@ -117,7 +117,7 @@ Strict mode is disabled by default, and when enabled it cannot be overridden wit
 
 1. [Atlassian Plugin SDK](https://developer.atlassian.com/display/DOCS/Set+up+the+Atlassian+Plugin+SDK+and+Build+a+Project) (or run `bin/invoke-sdk.sh` on Linux)
 2. [Eclipse](http://eclipse.org) (or the java IDE of your choice)
-3. [JDK8](http://java.com) Stash has dropped support for JDK7 as of version 3.5 and later, so we should be building with JDK8.
+3. [JDK8](http://java.com) Stash has dropped support for JDK7 as of version 3.5 and later, so we should be building with JDK8. **NOTE: JDK9+ does not work, see troubleshooting below for details**
 4. git cli should be on your path.
 
 ## Eclipse Setup
@@ -139,6 +139,19 @@ following to configure it:
 2. Navigate to http://localhost:8080 to configure
 3. Install the necessary plugins listed above (required!)
 4. Ensure you navigate to a repository settings page and click "save", that is what initially creates/updates jobs in jenkins.
+
+You can obtain a suitable jenkins.war file [here](http://mirrors.jenkins.io/war-stable/2.190.1/jenkins.war).  This is the latest version I have tested with Stashbot.
+
+## Running Stashbot Locally
+
+To test or demo Stashbot, you can run it locally.  The Atlassian Plugin SDK allows you to run a live instance of Bitbucket Server right on your local machine.  The provided scripts assume Linux but can probably be made to work on other UNIX like systems.
+
+1. Run `./bin/install-plugin-sdk-linux.sh`.  This installs a hard-coded version of the atlassian plugin SDK in `.sdk`.
+2. Examine pom.xml to determine the version of Bitbucket to use.  The latest tested version is always in the pom.xml: `grep '/bitbucket\.version' pom.xml | cut -d'>' -f2 | cut -d'<' -f1` => `4.1.0`
+3. Ensure Jenkins is running as per directions above
+4. Run the unit tests, followed by an instance of Bitbucket with Stashbot installed and running, by invoking this command: `.sdk/bin/atlas-run --product bitbucket --version 4.1.0` (replacing 4.1.0 with the actual version from the pom.xml - and ensuring your JAVA_HOME and PATH have the correct JDK on them)
+
+Note that jenkins configs are stored in `$HOME/.jenkins` and bitbucket state is stored in `target/bitbucket/home` so a clean will blow away any configs, etc.
 
 ## Test Plan
 
@@ -181,6 +194,16 @@ This is important because Atlassian plugins use OSGi and their version strings *
 Therefore, for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
 
 Not every released version will necessarily be put on the Atlassian Marketplace, but every released version should be stable (i.e. pass all unit tests, and be reasonably functional).
+
+# Troubleshooting
+
+## JDK8 Required (JDK9+ does not work)
+
+This is because in JDK9+ the JAXB APIs were removed in favor of a module system.  Tests will fail at runtime with missing JAXB classes.  There is a detailed answer with different workarounds [here](https://stackoverflow.com/questions/43574426/how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j), PRs welcome =)
+
+## Errors related to "org.apache.http.client.HttpResponseException: No valid crumb was included in the request"
+
+"Crumbs" are how jenkins implements CSRF Protection.  This used to work but currently does not.  Disable crumbs by going to "Manage Jenkins" -> "Configure Global Security" and uncheck "Prevent Cross Site Request Forgery exploits".  This should be easy to fix, PRs welcome.
 
 # TODO
 
